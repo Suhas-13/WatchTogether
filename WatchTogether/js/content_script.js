@@ -1,3 +1,4 @@
+let s;
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         /*
@@ -5,11 +6,17 @@ chrome.runtime.onMessage.addListener(
             console.log('Value is set to ');
           });
         */
-       let sess_token=request.value;
-       chrome.storage.local.set({'sess': sess_token});
-       chrome.storage.local.get('token', function (result) {
+       let sess_token;
+       if (request.intent!='destroy') {
+          sess_token=request.value;
+       }
        
-        if (request.create) {
+       chrome.storage.local.set({'sess_token': sess_token});
+       chrome.storage.local.set({'sess_url': document.location.href.split('?')[0]});
+       chrome.storage.local.get('token', function (result) {
+
+        if (request.intent=="create") {
+          
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
                 formData.append('uniqueID', result['token']);
@@ -25,8 +32,10 @@ chrome.runtime.onMessage.addListener(
                   }).then( (response) => { 
                     console.log(response)
                  });
+                 s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+                 s.startSession();
                 }
-        else {
+        else if (request.intent=="join") {
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
                 formData.append('uniqueID', result['token']);
@@ -39,40 +48,22 @@ chrome.runtime.onMessage.addListener(
                   }).then( (response) => { 
                     console.log(response)
                  });
+                 s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+                 s.startSession();
                }
-               function listener(play, currentTime) {
-                 if (play) {
-                  socket.emit("play",{SESSID:sess_token})
-                 }
-                 else {
-                   socket.emit("pause",{SESSID:sess_token})
-                 }
-                console.log(play);
-                }
-               let socket=io("https://192.168.86.172/",{query:"id="+result['token']});    
-               socket.on('play', function(data){video.play();});
-               socket.on('pause', function(data){video.pause();});
-
-               video.addEventListener("play", function() {
-                listener(true,video.currentTime)
-                });
-              video.addEventListener("pause", function() {
-                    listener(false,video.currentTime)
-                });
-                  
-              function react(mutationList, observer) {
-                  [...mutationList].forEach(mr => {
-                    mr.addedNodes.forEach(node => {
-                      if (node.nodeType === 1 && node.tagName.toLowerCase() === 'video') {
-                        events.forEach(ev => node.addEventListener(ev, listener)) 
-                      }
-                    })
-                  })
-                }
-              let observer = new MutationObserver(react);
-              let config = { childList: true, subtree: true };
-              observer.observe(video, config);
+        else if (request.intent=="destroy") {
+          s.stopSession();
+        }
+              
+                
+               
+        
+        
+               //startSession(video,sess_token,result['token']);
               
     });
+    return true;
         
     });
+
+   

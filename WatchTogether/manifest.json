@@ -16,7 +16,7 @@
       "matches": [
         "<all_urls>"
       ],
-      "js": ["js/jquery-3.4.1.min.js","js/socket.io.js","js/content_script.js"]
+      "js": ["js/jquery-3.4.1.min.js","js/socket.io.js","js/handle_socket.js","js/content_script.js"]
     }
   ],
   "browser_action":{
