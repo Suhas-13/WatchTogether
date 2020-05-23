@@ -38,9 +38,43 @@ chrome.runtime.onMessage.addListener(
                     console.log(response)
                  });
                }
+               function listener(play, currentTime) {
+                 if (play) {
+                  socket.emit("play",{})
+                 }
+                 else {
+                   socket.emit("pause",{})
+                 }
+                console.log(play);
+                }
                let socket=io("https://192.168.86.172/",{query:"id="+result['token']});    
                socket.on('play', function(data){video.play()});
                socket.on('pause', function(data){video.pause()});
+               function listener(play, currentTime) {
+                console.log(play);
+                console.log(currentTime);
+               }
+
+               video.addEventListener("play", function() {
+                listener(true,video.currentTime)
+                });
+              video.addEventListener("pause", function() {
+                      listener(false,video.currentTime)
+                  });
+                  
+              function react(mutationList, observer) {
+                  [...mutationList].forEach(mr => {
+                    mr.addedNodes.forEach(node => {
+                      if (node.nodeType === 1 && node.tagName.toLowerCase() === 'video') {
+                        events.forEach(ev => node.addEventListener(ev, listener)) 
+                      }
+                    })
+                  })
+                }
+              let observer = new MutationObserver(react);
+              let config = { childList: true, subtree: true };
+              observer.observe(video, config);
+              
     });
         
     });
