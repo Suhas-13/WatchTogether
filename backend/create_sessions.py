@@ -46,11 +46,10 @@ def play(sid, data):
     cursor=conn.cursor()
     user_list=cursor.execute("select socketID from user_list where sessionID = ? and socketID is not NULL",(data["SESSID"],)).fetchall()
     print(user_list)
-    new_list=[]
-    for i in range(len(user_list)):
-        if (user_list[i] is not None):
-            
-    sio.emit("play",{},skip_sid=sid)
+    for i in user_list:
+        if (i[0] is not None and i[0] is not sid):
+            sio.emit("play",{},room=i[0],skip_sid=sid)
+    
 
     conn.close()
     
@@ -60,13 +59,11 @@ def pause(sid, data):
     print("PAUSING" + " id is " + sid)
     conn=sqlite3.connect("sessions.db")
     cursor=conn.cursor()
-    
     user_list=cursor.execute("select socketID from user_list where sessionID = ? and socketID is not NULL",(data["SESSID"],)).fetchall()
-    print(user_list)
     for i in user_list:
-        if (i[0] is not None):
-            sio.broadcast.emit("pause",{},room=i[0])
-            print (i[0])
+        if (i[0] is not None and i[0] is not sid):
+            sio.emit("pause",{},room=i[0],skip_sid=sid)
+            
     conn.close()
 
 @sio.on("connect")
