@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener(
                 formData.append("currentTime",(video.currentTime));
                 formData.append("playing",(!video.paused));
                 formData.append("sessionID",request["value"]);
-                fetch('https://192.168.86.172:5000/create_session', {
+                fetch('https://192.168.86.172/create_session', {
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener(
                 formData.append('uniqueID', result['token']);
                 formData.append("username","test");
                 formData.append("sessionID",request["value"]);
-                fetch('https://192.168.86.172:5000/join_session', {
+                fetch('https://192.168.86.172/join_session', {
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener(
                     console.log(response)
                  });
                }
-               let socket=io("https://192.168.86.172:5000/",{query:"id="+result['token']});    
+               let socket=io("https://192.168.86.172/",{query:"id="+result['token']});    
                socket.on('play', function(data){video.play()});
                socket.on('pause', function(data){video.pause()});
     });

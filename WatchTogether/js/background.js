@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(function(details){
         chrome.storage.local.set({'token': token});
         let formData = new FormData();
         formData.append("token",token);
-        fetch('https://192.168.86.172:5000/create_user', {
+        fetch('https://192.168.86.172/create_user', {
             method: "post",
             body: formData,
             mode: 'no-cors'
