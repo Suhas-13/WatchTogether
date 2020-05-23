@@ -41,23 +41,30 @@ app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 
 @sio.on("play")
 def play(sid, data):
+    print("PLAYING" + " id is " + sid)
     conn=sqlite3.connect("sessions.db")
     cursor=conn.cursor()
     user_list=cursor.execute("select socketID from user_list where sessionID = ?",(data["SESSID"],)).fetchall()
+    print(user_list)
     for i in user_list:
         if (i[0] is not None):
             sio.emit("play",{},room=i[0])
+            print (i[0])
     conn.close()
     
 
 @sio.on("pause")
 def pause(sid, data):
+    print("PAUSING" + " id is " + sid)
     conn=sqlite3.connect("sessions.db")
     cursor=conn.cursor()
+    
     user_list=cursor.execute("select socketID from user_list where sessionID = ?",(data["SESSID"],)).fetchall()
+    print(user_list)
     for i in user_list:
         if (i[0] is not None):
             sio.emit("pause",{},room=i[0])
+            print (i[0])
     conn.close()
 
 @sio.on("connect")
@@ -68,6 +75,7 @@ def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
     unique_id=(query_string.split("&")[0].split("id=")[1])
     cursor.execute("update user_list set socketID = ? where unique_id = ?",(sid,unique_id))
+    conn.commit()
     conn.close()
 @sio.on("disconnect")
 def disconnect(sid):

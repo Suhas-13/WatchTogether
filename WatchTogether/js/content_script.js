@@ -5,8 +5,10 @@ chrome.runtime.onMessage.addListener(
             console.log('Value is set to ');
           });
         */
+       let sess_token=request.value;
+       chrome.storage.local.set({'sess': sess_token});
        chrome.storage.local.get('token', function (result) {
-
+       
         if (request.create) {
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
@@ -40,27 +42,23 @@ chrome.runtime.onMessage.addListener(
                }
                function listener(play, currentTime) {
                  if (play) {
-                  socket.emit("play",{})
+                  socket.emit("play",{SESSID:sess_token})
                  }
                  else {
-                   socket.emit("pause",{})
+                   socket.emit("pause",{SESSID:sess_token})
                  }
                 console.log(play);
                 }
                let socket=io("https://192.168.86.172/",{query:"id="+result['token']});    
-               socket.on('play', function(data){video.play()});
-               socket.on('pause', function(data){video.pause()});
-               function listener(play, currentTime) {
-                console.log(play);
-                console.log(currentTime);
-               }
+               socket.on('play', function(data){video.play();});
+               socket.on('pause', function(data){video.pause();});
 
                video.addEventListener("play", function() {
                 listener(true,video.currentTime)
                 });
               video.addEventListener("pause", function() {
-                      listener(false,video.currentTime)
-                  });
+                    listener(false,video.currentTime)
+                });
                   
               function react(mutationList, observer) {
                   [...mutationList].forEach(mr => {
