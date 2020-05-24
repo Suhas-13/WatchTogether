@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener(
                 formData.append("currentTime",(video.currentTime));
                 formData.append("playing",(!video.paused));
                 formData.append("sessionID",request["value"]);
-                fetch('https://192.168.86.172/create_session', {
+                fetch('https://192.168.86.36/create_session', {
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener(
                 formData.append('uniqueID', result['token']);
                 formData.append("username","test");
                 formData.append("sessionID",request["value"]);
-                fetch('https://192.168.86.172/join_session', {
+                fetch('https://192.168.86.36/join_session', {
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
