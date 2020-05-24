@@ -4,7 +4,7 @@ from flask import request
 import socketio
 from urllib.parse import unquote
 import time
-TOLERANCE=1
+TOLERANCE=5
 
 sessions={}
 users={}

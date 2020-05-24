@@ -14,14 +14,14 @@ class SocketObject {
 
         setTimeout(function(data) {
           jQuery('video').trigger("play",[true]);
-        },data['time']-(new Date()/1000))
+        },(data['time']-(new Date()/1000))*1000)
         
       });
       
       this.sock.on('pause', function(data){
         setTimeout(function(data) {
           jQuery('video').trigger("pause",[true]);
-        },data['time']-(new Date()/1000))
+        },(data['time']-(new Date()/1000))*1000)
         
       });
       
