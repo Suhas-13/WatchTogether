@@ -4,38 +4,66 @@ class SocketObject {
        this.video=video;
        this.sess_token=sess_token;
        this.unique_token=unique_token;
+       this.play=video.paused
+       this.pause=video.paused
     }
 
     startSession() {
     
 
-    /* figure out why it's giving not ofund on videoo.addEventHandler */
-      this.sock.on('play', function(data){video.play();});
-      this.sock.on('pause', function(data){video.pause();});
-      console.log(this.listener);
-      this.listener_play = function(event) {
-        this.sock.emit("play",{SESSID:this.sess_token});
-      }
-      this.listener_pause = function(event) {
-        this.sock.emit("pause",{SESSID:this.sess_token});
-      }
-     this.video.addEventListener('play', this.listener_play.bind(this), false); // Trick
-      this.video.addEventListener('pause', this.listener_pause.bind(this), false); // Trick
+      /*
+      this.sock.on('play', function(data){
+        console.log("before 1 second");
+        setTimeout(function(data) {
+          video.play();
+          console.log("after 1 second");
+        },data['time']-(new Date().getTime()/1000))
+        
+      });
+      this.sock.on('play', function(data){
+        console.log("before 1 second");
+        setTimeout(function(data) {
+          video.pause();
+          console.log("after 1 second");
+        },data['time']-(new Date().getTime()/1000))
+        
+      });
+      */
+     this.play=video.paused
+     this.pause=video.paused
+      $("video").bind("play",function(e, isScriptInvoked) {
+        if (isScriptInvoked) {
+          console.log("script");
+          this.play=false;
+        }
+        else {
+          if (this.play) {
+            console.log("user");
+            $('video').trigger("pause",[true]);
+            //this.sock.emit("play",{SESSID:this.sess_token});
+          }
+          else {
+            this.play=true;
+          }
+        }
+      })
+      $("video").bind("pause",function(e, isScriptInvoked) {
+        if (isScriptInvoked) {
+          console.log("script");
+          this.pause=false;
+        }
+        else {
+          if (this.pause) {
+            console.log("user");
+            $('video').trigger("play",[true]);
+            //this.sock.emit("pause",{SESSID:this.sess_token});
+          }
+          else {
+            this.pause=true;
+          }
+        }
+      })
 
-         
-     function react(mutationList, observer) {
-         [...mutationList].forEach(mr => {
-           mr.addedNodes.forEach(node => {
-             if (node.nodeType === 1 && node.tagName.toLowerCase() === 'video') {
-               events.forEach(ev => node.addEventListener(ev, listener)) 
-             }
-           })
-         })
-       }
-     let observer = new MutationObserver(react);
-     let config = { childList: true, subtree: true };
-     observer.observe(video, config);
-    
     }
     stopSession() {
         this.sock.disconnect();

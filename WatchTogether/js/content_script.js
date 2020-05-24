@@ -67,16 +67,19 @@ chrome.runtime.onMessage.addListener(
     });
 
 function main (evt) {
-  chrome.storage.local.get(["sess_token","sess_url"], function (result) {
-        url=document.location.href.split('?')[0]
-        if (result["sess_token"] != "" && result["sess_url"] == url) {
-          console.log("reloading from saved state");
-          let videos=document.getElementsByTagName("video");
-          if (videos.length !=0) {
-            s=new SocketObject(videos[0],result['sess_token'],result['token']);
-            s.startSession();
-          }
-    }})
+  if (!s) {
+    chrome.storage.local.get(["sess_token","sess_url"], function (result) {
+      url=document.location.href.split('?')[0]
+      if (result["sess_token"] != "" && result["sess_url"] == url) {
+        console.log("reloading from saved state");
+        let videos=document.getElementsByTagName("video");
+        if (videos.length !=0) {
+          s=new SocketObject(videos[0],result['sess_token'],result['token']);
+          s.startSession();
+        }
+  }})
+  }
+  
 }
 
 
