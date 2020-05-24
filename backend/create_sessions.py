@@ -54,7 +54,7 @@ def play(sid, data):
     print(user_list)
     for i in user_list:
         if (i[0] is not None and i[0] is not sid):
-            sio.emit("play",{},room=i[0],skip_sid=sid)
+            sio.emit("play",{},room=i[0])
     
 
     conn.close()
@@ -68,7 +68,7 @@ def pause(sid, data):
     user_list=cursor.execute("select socketID from user_list where sessionID = ? and socketID is not NULL",(data["SESSID"],)).fetchall()
     for i in user_list:
         if (i[0] is not None and i[0] is not sid):
-            sio.emit("pause",{},room=i[0],skip_sid=sid)
+            sio.emit("pause",{},room=i[0])
             
     conn.close()
 

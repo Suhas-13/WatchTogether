@@ -19,8 +19,8 @@ class SocketObject {
       this.listener_pause = function(event) {
         this.sock.emit("pause",{SESSID:this.sess_token});
       }
-      video.addEventListener('play', this.listener_play.bind(this), false); // Trick
-      video.addEventListener('pause', this.listener_pause.bind(this), false); // Trick
+     this.video.addEventListener('play', this.listener_play.bind(this), false); // Trick
+      this.video.addEventListener('pause', this.listener_pause.bind(this), false); // Trick
 
          
      function react(mutationList, observer) {
