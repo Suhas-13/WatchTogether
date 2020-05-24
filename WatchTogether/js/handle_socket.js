@@ -14,15 +14,14 @@ class SocketObject {
 
         setTimeout(function(data) {
           jQuery('video').trigger("play",[true]);
-        },((data['time']-(new Date().getTime()/1000))*1000))
+        },data['time']-(new Date()/1000))
         
       });
       
       this.sock.on('pause', function(data){
-        let fut_time=data['time']-(new Date().getTime()/1000);
         setTimeout(function(data) {
           jQuery('video').trigger("pause",[true]);
-        },((data['time']-(new Date().getTime()/1000))*1000))
+        },data['time']-(new Date()/1000))
         
       });
       
@@ -62,6 +61,7 @@ class SocketObject {
 
     }
     stopSession() {
+      
         this.sock.disconnect();
         chrome.storage.local.set({'sess_token': ""});
         chrome.storage.local.set({'sess_url': ""});
