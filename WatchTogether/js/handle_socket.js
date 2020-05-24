@@ -14,7 +14,7 @@ class SocketObject {
 
         setTimeout(function(data) {
           jQuery('video').trigger("play",[true]);
-        },(data['time']-(new Date().getTime()/1000)*1000))
+        },((data['time']-(new Date().getTime()/1000))*1000))
         
       });
       
@@ -22,7 +22,7 @@ class SocketObject {
         let fut_time=data['time']-(new Date().getTime()/1000);
         setTimeout(function(data) {
           jQuery('video').trigger("pause",[true]);
-        },(data['time']-(new Date().getTime()/1000)*1000))
+        },((data['time']-(new Date().getTime()/1000))*1000))
         
       });
       
@@ -45,10 +45,12 @@ class SocketObject {
 
     jQuery('video').bind("pause",function(e, isScriptInvoked) {
         if (isScriptInvoked) {
+          console.log("script pause");
           pause=false;
         }
         else {
           if (pause) {
+            console.log("user pause");
             jQuery('video').trigger("play",[true]);
             that.sock.emit("pause",{SESSID:that.sess_token});
           }
