@@ -5,17 +5,7 @@ class SocketObject {
        this.sess_token=sess_token;
        this.unique_token=unique_token;
     }
-    listener(play, currentTime) {
-       console.log(this.sock);
 
-      if (play) {
-      this.sock.emit("play",{SESSID:this.sess_token})
-      }
-      else {
-      this.sock.emit("pause",{SESSID:this.sess_token})
-      }
-
-  }
     startSession() {
     
 
@@ -23,8 +13,15 @@ class SocketObject {
       this.sock.on('play', function(data){video.play();});
       this.sock.on('pause', function(data){video.pause();});
       console.log(this.listener);
-      video.addEventListener("play", this.listener(true,video.currentTime));
-      video.addEventListener("pause", this.listener(false,video.currentTime));
+      this.listener_play = function(event) {
+        this.sock.emit("play",{SESSID:this.sess_token});
+      }
+      this.listener_pause = function(event) {
+        this.sock.emit("pause",{SESSID:this.sess_token});
+      }
+      video.addEventListener('play', this.listener_play.bind(this), false); // Trick
+      video.addEventListener('pause', this.listener_pause.bind(this), false); // Trick
+
          
      function react(mutationList, observer) {
          [...mutationList].forEach(mr => {
