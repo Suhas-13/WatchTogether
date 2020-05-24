@@ -78,9 +78,9 @@ function main (evt) {
           if (videos.length !=0) {
             s=new SocketObject(videos[0],result['sess_token'],result['token']);
           }
-        }
+        }})
 
-}
+})}
 
 
    
