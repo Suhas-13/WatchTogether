@@ -26,7 +26,13 @@ CREATE TABLE session_list (
 )
 """
 
-
+def wipe_db():
+    conn=sqlite3.connect("sessions.db")
+    cursor=conn.cursor()
+    cursor.execute('delete from user_list')
+    cursor.execute('delete from session_list')
+    conn.commit()
+    conn.close()
 if len(cursor.execute(user_table_check).fetchall()) == 0:
     cursor.execute(user_table)
     conn.commit()
@@ -78,7 +84,11 @@ def connect(sid, environ):
     conn.close()
 @sio.on("disconnect")
 def disconnect(sid):
+    conn = sqlite3.connect('sessions.db')
+    cursor=conn.cursor()
+    cursor.execute("update user_list set sessionID = NULL where sessionID = ? ",(sid,))
     print('disconnect ', sid)
+
 
 @app.route("/create_session",methods=['POST'])
 def create_session():

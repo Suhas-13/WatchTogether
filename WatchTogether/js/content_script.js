@@ -65,5 +65,22 @@ chrome.runtime.onMessage.addListener(
     return true;
         
     });
+window.addEventListener ("load", main, false);
+
+function main (evt) {
+  chrome.storage.local.get(["sess_token","sess_url"], function (result) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        var activeTab = tabs[0];
+        url=activeTab.url
+        url=url.split("?")[0]
+        if (result["sess_token"] != "" && result["sess_url"] == url) {
+          let videos=document.getElementsByTagName("video");
+          if (videos.length !=0) {
+            s=new SocketObject(videos[0],result['sess_token'],result['token']);
+          }
+        }
+
+}
+
 
    
