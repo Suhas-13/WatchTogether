@@ -34,11 +34,11 @@ class SocketObject {
       
       this.sock.on('seek', (data) => {
         setTimeout(() => {
-          await seek_callback_false();
+          seek_callback_false();
           
           this.video.currentTime=data['new_time'];
           jQuery("video").trigger("pause",[true]).then
-          await seek_callback_true();
+          seek_callback_true();
         },(data['time']-(new Date()/1000))*1000)
         
       });
