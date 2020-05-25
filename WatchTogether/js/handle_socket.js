@@ -19,14 +19,14 @@ class SocketObject {
       });
       
       this.sock.on('pause', (data) => {
-        setTimeout((data) => {
+        setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
         },(data['time']-(new Date()/1000))*1000)
         
       });
       
       this.sock.on('seek', (data) => {
-        setTimeout((data) => {
+        setTimeout(() => {
           seekable=false;
           this.video.currentTime=data['new_time'];
           seekable=true;
