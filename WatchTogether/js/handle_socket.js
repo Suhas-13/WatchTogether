@@ -9,32 +9,45 @@ class SocketObject {
     startSession() {
     
       let that=this;
+      let seekable=true;
       
-      this.sock.on('play', function(data){
-
-        setTimeout(function(data) {
+      this.sock.on('play', (data) => {
+        setTimeout((data) => {
           jQuery('video').trigger("play",[true]);
         },(data['time']-(new Date()/1000))*1000)
         
       });
       
-      this.sock.on('pause', function(data){
-        setTimeout(function(data) {
+      this.sock.on('pause', (data) => {
+        setTimeout((data) => {
           jQuery('video').trigger("pause",[true]);
         },(data['time']-(new Date()/1000))*1000)
         
       });
       
+      this.sock.on('seek', (data) => {
+        setTimeout((data) => {
+          seekable=false;
+          this.video.currentTime=data[new_time];
+          seekable=true;
+          jQuery("video").trigger("pause",[true]);
+        },(data['time']-(new Date()/1000))*1000)
+        
+      });
+      
+      
+      
      let play=true;
      let pause=true;
-     jQuery('video').bind("play",function(e, isScriptInvoked) {
+     
+     jQuery('video').bind("play",(e, isScriptInvoked) => {
         if (isScriptInvoked) {
           play=false;
         }
         else {
           if (play) {
             jQuery('video').trigger("pause",[true]);
-            that.sock.emit("play",{SESSID:that.sess_token});
+            this.sock.emit("play",{SESSID:this.sess_token});
           }
           else {
             play=true;
@@ -42,7 +55,7 @@ class SocketObject {
         }
       })
 
-    jQuery('video').bind("pause",function(e, isScriptInvoked) {
+    jQuery('video').bind("pause",(e, isScriptInvoked) => {
         if (isScriptInvoked) {
           console.log("script pause");
           pause=false;
@@ -51,11 +64,18 @@ class SocketObject {
           if (pause) {
             console.log("user pause");
             jQuery('video').trigger("play",[true]);
-            that.sock.emit("pause",{SESSID:that.sess_token});
+            this.sock.emit("pause",{SESSID:this.sess_token});
           }
           else {
             pause=true;
           }
+        }
+      })
+
+      jQuery('video').bind("seeking",(event,isScriptInvoked) => {
+        if (seekable) {
+          jQuery('video').trigger("pause",[true]);
+          this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
         }
       })
 
@@ -65,5 +85,6 @@ class SocketObject {
         this.sock.disconnect();
         chrome.storage.local.set({'sess_token': ""});
         chrome.storage.local.set({'sess_url': ""});
+        this.video.off();
     }
   }

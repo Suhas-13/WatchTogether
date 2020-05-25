@@ -4,7 +4,7 @@ from flask import request
 import socketio
 from urllib.parse import unquote
 import time
-TOLERANCE=5
+TOLERANCE=1
 
 sessions={}
 users={}
@@ -24,7 +24,10 @@ def pause(sid, data):
  
     sio.emit("pause",{"time":time.time()+TOLERANCE},room=data['SESSID'])
     
-            
+@sio.on("seek")
+def seek(sid, data):
+    sio.emit("seek",{"time":time.time()+(TOLERANCE*2)"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
+
 
 @sio.on("connect")
 def connect(sid, environ):
