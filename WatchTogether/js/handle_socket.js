@@ -4,12 +4,12 @@ class SocketObject {
        this.video=video;
        this.sess_token=sess_token;
        this.unique_token=unique_token;
+       this.seekable=true;
     }
 
     startSession() {
     
       let that=this;
-      let seekable=true;
       
       this.sock.on('play', (data) => {
         setTimeout((data) => {
@@ -27,7 +27,7 @@ class SocketObject {
       
       this.sock.on('seek', (data) => {
         setTimeout(() => {
-          seekable=false;
+          this.seekable=false;
           this.video.currentTime=data['new_time'];
           jQuery("video").trigger("pause",[true]);
         },(data['time']-(new Date()/1000))*1000)
@@ -72,10 +72,10 @@ class SocketObject {
       })
 
       jQuery('video').bind("seeked",(event,isScriptInvoked) => {
-        if (seekable) {
+        if (this.seekable) {
           jQuery('video').trigger("pause",[true]);
           this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
-          seekable=true;
+          this.seekable=true;
         }
       })
 
