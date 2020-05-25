@@ -30,6 +30,7 @@ class SocketObject {
           seekable=false;
           this.video.currentTime=data[new_time];
           seekable=true;
+          console.log("seeked programatically")
           jQuery("video").trigger("pause",[true]);
         },(data['time']-(new Date()/1000))*1000)
         
@@ -72,7 +73,7 @@ class SocketObject {
         }
       })
 
-      jQuery('video').bind("seeking",(event,isScriptInvoked) => {
+      jQuery('video').bind("seeked",(event,isScriptInvoked) => {
         if (seekable) {
           jQuery('video').trigger("pause",[true]);
           this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
