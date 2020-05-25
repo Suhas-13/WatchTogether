@@ -5,6 +5,8 @@ class SocketObject {
        this.sess_token=sess_token;
        this.unique_token=unique_token;
        this.seekable=true;
+       this.play=video.paused;
+       this.pause=!video.paused;
     }
 
     startSession() {
@@ -41,22 +43,19 @@ class SocketObject {
         
       });
       
-      
-      
-     let play=video.paused;
-     let pause=video.paused;
+    
      
      jQuery('video').bind("play",(e, isScriptInvoked) => {
         if (isScriptInvoked) {
-          play=false;
+          this.play=false;
         }
         else {
-          if (play) {
+          if (this.play) {
             jQuery('video').trigger("pause",[true]);
             this.sock.emit("play",{SESSID:this.sess_token});
           }
           else {
-            play=true;
+            this.play=true;
           }
         }
       })
@@ -64,16 +63,16 @@ class SocketObject {
     jQuery('video').bind("pause",(e, isScriptInvoked) => {
         if (isScriptInvoked) {
           console.log("script pause");
-          pause=false;
+          this.pause=false;
         }
         else {
-          if (pause) {
+          if (this.pause) {
             console.log("user pause");
             jQuery('video').trigger("play",[true]);
             this.sock.emit("pause",{SESSID:this.sess_token});
           }
           else {
-            pause=true;
+            this.pause=true;
           }
         }
       })

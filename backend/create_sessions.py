@@ -4,7 +4,7 @@ from flask import request
 import socketio
 from urllib.parse import unquote
 import time
-TOLERANCE=1
+TOLERANCE=0.5
 
 sessions={}
 users={}
@@ -61,7 +61,7 @@ def disconnect(sid):
             break
     sessionID=users[unique_id]['sessionID']
     sio.leave_room(sid,sessionID)
-    user_list=sessions[sessionID]['sessionID']['users']
+    user_list=sessions[sessionID]['users']
     user_list.pop(user_list.index(sid))
     del(users[unique_id])
     
