@@ -26,11 +26,9 @@ class SocketObject {
       });
       
       this.sock.on('seek', (data) => {
-        console.log(data);
         setTimeout((data) => {
-          console.log(data);
           seekable=false;
-          this.video.currentTime=data["new_time"];
+          this.video.currentTime=data['new_time'];
           seekable=true;
           jQuery("video").trigger("pause",[true]);
         },(data['time']-(new Date()/1000))*1000)
