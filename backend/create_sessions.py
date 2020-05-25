@@ -37,16 +37,16 @@ def connect(sid, environ):
         sessionID=users[unique_id]['sessionID']
         sessions[sessionID]['users'].append(sid)
         
-        sio.enter_room(sid,users[unique_id]['sessionID'])
+        sio.enter_room(sid,sessionID)
         playing=sessions[sessionID]['playing']
         sio.emit("pause",{"time":time.time()+TOLERANCE})
         users[unique_id]['currentTime']=sessions
         if (playing):
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
-            sio.emit("play",{"time":time.time()+TOLERANCE},room=sid)
+            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
         else:
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
-            sio.emit("pause",{"time":time.time()+TOLERANCE},room=sid)
+            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("pause",{"time":time.time()+TOLERANCE+0.4},room=sid)
         for i in sessions.keys():
             if sid in sessions[i]['users']:
                 sessions[i]['users'].pop(sessions[i]['users'].index(sid))
@@ -93,7 +93,7 @@ def join_session():
         if len(sessionID) == 0  or sessionID not in sessions:
             return Response("Failed to join session", status=400)
         else:
-            users[uniqueID]={"sessionID":sessionID,"socketID":None}
+            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None}
             return Response("Session joined succesfully", status=200)
     except Exception as e:
         print(e)
