@@ -33,10 +33,11 @@ def seek(sid, data):
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
     unique_id=(query_string.split("&")[0].split("id=")[1])
-    users[unique_id]['socketID']=sid
-    sessions[users[unique_id]['sessionID']]['users'].append(sid)
-    
-    sio.enter_room(sid,users[unique_id]['sessionID'])
+    if (unique_id!="undefined" and unique_id is not None):
+        users[unique_id]['socketID']=sid
+        sessions[users[unique_id]['sessionID']]['users'].append(sid)
+        
+        sio.enter_room(sid,users[unique_id]['sessionID'])
 
 @sio.on("disconnect")
 def disconnect(sid):
