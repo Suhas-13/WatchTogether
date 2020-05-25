@@ -39,6 +39,7 @@ def connect(sid, environ):
         
         sio.enter_room(sid,users[unique_id]['sessionID'])
 
+
 @sio.on("disconnect")
 def disconnect(sid):
     for i in users:
