@@ -79,6 +79,7 @@ class SocketObject {
       jQuery('video').bind("seeked",(event,isScriptInvoked) => {
         if (this.seekable) {
           jQuery('video').trigger("pause",[true]);
+          this.pause=true;
           this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
 
         }
