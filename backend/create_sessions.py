@@ -15,20 +15,19 @@ app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 @sio.on("play")
 def play(sid, data):
     sio.emit("play",{"time":time.time()+TOLERANCE},room=data['SESSID'])
-    sessions[data['SESSID']['playing']]=True
+    sessions[data['SESSID']]['playing']=True
 
     
-
 @sio.on("pause")
 def pause(sid, data):
  
     sio.emit("pause",{"time":time.time()+TOLERANCE},room=data['SESSID'])
-    sessions[data['SESSID']['playing']]=False
+    sessions[data['SESSID']]['playing']=False
     
 @sio.on("seek")
 def seek(sid, data):
     sio.emit("seek",{"time":time.time()+(TOLERANCE),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
-    sessions[data['SESSID']['playing']]=False
+    sessions[data['SESSID']]['playing']=False
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
@@ -39,13 +38,14 @@ def connect(sid, environ):
         sessions[sessionID]['users'].append(sid)
         
         sio.enter_room(sid,users[unique_id]['sessionID'])
+        playing=sessions[sessionID]['playing']
         sio.emit("pause",{"time":time.time()+TOLERANCE})
         users[unique_id]['currentTime']=sessions
-        if (sessions[sessionID]['sessionID']['playing']):
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['sessionID']['serverTime']},room=sid)
+        if (playing):
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("play",{"time":time.time()+TOLERANCE},room=sid)
         else:
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['sessionID']['serverTime']},room=sid)
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("pause",{"time":time.time()+TOLERANCE},room=sid)
         for i in sessions.keys():
             if sid in sessions[i]['users']:
@@ -78,7 +78,7 @@ def create_session():
         if len(sessionID) == 0 or len(url) == 0 or sessionID in sessions:
             return Response("SessionID already in use", status=400)
         else:
-            sessions[sessionID]={"users":[],"url":url,"playing":playing,"serverTime":currentTime}
+            sessions[sessionID]={"users":[],"url":url,"playing":playing=="true","serverTime":currentTime}
             users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None}
             return Response("Session created succesfully",status=200)
     except Exception as e:
