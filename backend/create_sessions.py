@@ -26,7 +26,7 @@ def pause(sid, data):
     
 @sio.on("seek")
 def seek(sid, data):
-    sio.emit("seek",{"time":time.time()+(TOLERANCE*2)"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
+    sio.emit("seek",{"time":time.time()+(TOLERANCE*2),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
 
 
 @sio.on("connect")

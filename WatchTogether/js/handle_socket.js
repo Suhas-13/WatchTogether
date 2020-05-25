@@ -28,7 +28,7 @@ class SocketObject {
       this.sock.on('seek', (data) => {
         setTimeout((data) => {
           seekable=false;
-          this.video.currentTime=data[new_time];
+          this.video.currentTime=data["new_time"];
           seekable=true;
           console.log("seeked programatically")
           jQuery("video").trigger("pause",[true]);
