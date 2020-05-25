@@ -35,12 +35,8 @@ class SocketObject {
       this.sock.on('seek', (data) => {
         setTimeout(() => {
           seek_callback_false();
-          console.log("setting seek callback off" + this.seekable);
           this.video.currentTime=data['new_time'];
-          console.log("setting video position" + this.seekable);
           jQuery("video").trigger("pause",[true])
-          seek_callback_true();
-          console.log("setting seek  callback on" + this.seekable);
         },(data['time']-(new Date()/1000))*1000)
         
       });
@@ -86,6 +82,8 @@ class SocketObject {
         if (this.seekable) {
           jQuery('video').trigger("pause",[true]);
           this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
+          seek_callback_true();
+
         }
       })
 
