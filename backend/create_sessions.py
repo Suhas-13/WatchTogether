@@ -15,7 +15,7 @@ app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 @sio.on("play")
 def play(sid, data):
     sio.emit("play",{"time":time.time()+TOLERANCE},room=data['SESSID'])
-
+    sessions[data['SESSID']['playing']]=True
 
     
 
@@ -23,21 +23,34 @@ def play(sid, data):
 def pause(sid, data):
  
     sio.emit("pause",{"time":time.time()+TOLERANCE},room=data['SESSID'])
+    sessions[data['SESSID']['playing']]=False
     
 @sio.on("seek")
 def seek(sid, data):
     sio.emit("seek",{"time":time.time()+(TOLERANCE),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
-
-
+    sessions[data['SESSID']['playing']]=False
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
     unique_id=(query_string.split("&")[0].split("id=")[1])
     if (unique_id!="undefined" and unique_id is not None):
         users[unique_id]['socketID']=sid
-        sessions[users[unique_id]['sessionID']]['users'].append(sid)
+        sessionID=users[unique_id]['sessionID']
+        sessions[sessionID]['users'].append(sid)
         
         sio.enter_room(sid,users[unique_id]['sessionID'])
+        sio.emit("pause",{"time":time.time()+TOLERANCE})
+        users[unique_id]['currentTime']=sessions
+        if (sessions[sessionID]['sessionID']['playing']):
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['sessionID']['serverTime']},room=sid)
+            sio.emit("play",{"time":time.time()+TOLERANCE},room=sid)
+        else:
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['sessionID']['serverTime']},room=sid)
+            sio.emit("pause",{"time":time.time()+TOLERANCE},room=sid)
+        for i in sessions.keys():
+            if sid in sessions[i]['users']:
+                sessions[i]['users'].pop(sessions[i]['users'].index(sid))
+        
 
 
 @sio.on("disconnect")
@@ -46,8 +59,9 @@ def disconnect(sid):
         if users[i]['socketID']==sid:
             unique_id=i
             break
-    sio.leave_room(sid,users[unique_id]['sessionID'])
-    user_list=sessions[users[unique_id]['sessionID']]['users']
+    sessionID=users[unique_id]['sessionID']
+    sio.leave_room(sid,sessionID)
+    user_list=sessions[sessionID]['sessionID']['users']
     user_list.pop(user_list.index(sid))
     del(users[unique_id])
     
@@ -64,8 +78,8 @@ def create_session():
         if len(sessionID) == 0 or len(url) == 0 or sessionID in sessions:
             return Response("SessionID already in use", status=400)
         else:
-            sessions[sessionID]={"users":[],"url":url,"playing":playing,"currentTime":currentTime}
-            users[uniqueID]={"sessionID":sessionID,"socketID":None}
+            sessions[sessionID]={"users":[],"url":url,"playing":playing,"serverTime":currentTime}
+            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None}
             return Response("Session created succesfully",status=200)
     except Exception as e:
         print(e)

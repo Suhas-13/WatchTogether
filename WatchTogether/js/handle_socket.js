@@ -43,8 +43,8 @@ class SocketObject {
       
       
       
-     let play=true;
-     let pause=true;
+     let play=video.paused;
+     let pause=video.paused;
      
      jQuery('video').bind("play",(e, isScriptInvoked) => {
         if (isScriptInvoked) {
@@ -95,6 +95,6 @@ class SocketObject {
         this.sock.disconnect();
         chrome.storage.local.set({'sess_token': ""});
         chrome.storage.local.set({'sess_url': ""});
-        this.video.off();
+        jQuery("video").off();
     }
   }
