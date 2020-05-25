@@ -30,6 +30,7 @@ class SocketObject {
           this.seekable=false;
           this.video.currentTime=data['new_time'];
           jQuery("video").trigger("pause",[true]);
+          this.seekable=true;
         },(data['time']-(new Date()/1000))*1000)
         
       });
@@ -75,7 +76,6 @@ class SocketObject {
         if (this.seekable) {
           jQuery('video').trigger("pause",[true]);
           this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
-          this.seekable=true;
         }
       })
 
