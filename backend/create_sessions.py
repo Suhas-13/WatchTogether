@@ -39,13 +39,13 @@ def connect(sid, environ):
         
         sio.enter_room(sid,sessionID)
         playing=sessions[sessionID]['playing']
-        sio.emit("pause",{"time":time.time()+TOLERANCE})
+        #sio.emit("pause",{"time":time.time()+TOLERANCE})
         users[unique_id]['currentTime']=sessions
         if (playing):
-            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            #sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
         else:
-            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            #sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("pause",{"time":time.time()+TOLERANCE+0.4},room=sid)
         for i in sessions.keys():
             if sid in sessions[i]['users']:
