@@ -11,7 +11,6 @@ class SocketObject {
 
     startSession() {
     
-      let that=this;
       let seek_callback_true = ()=> {
         this.seekable=true;
         console.log("setting seek on")
