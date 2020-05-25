@@ -12,9 +12,11 @@ class SocketObject {
       let that=this;
       let seek_callback_true = ()=> {
         this.seekable=true;
+        console.log("setting seek on")
       }
       let seek_callback_false = ()=> {
         this.seekable=false;
+        console.log("setting seek off")
       }
       this.sock.on('play', (data) => {
         setTimeout((data) => {
@@ -32,10 +34,11 @@ class SocketObject {
       
       this.sock.on('seek', (data) => {
         setTimeout(() => {
-          seek_callback_false();
+          await seek_callback_false();
+          
           this.video.currentTime=data['new_time'];
           jQuery("video").trigger("pause",[true]).then
-          seek_callback_true();
+          await seek_callback_true();
         },(data['time']-(new Date()/1000))*1000)
         
       });
