@@ -10,7 +10,12 @@ class SocketObject {
     startSession() {
     
       let that=this;
-      
+      let seek_callback_true = ()=> {
+        this.seekable=true;
+      }
+      let seek_callback_false = ()=> {
+        this.seekable=false;
+      }
       this.sock.on('play', (data) => {
         setTimeout((data) => {
           jQuery('video').trigger("play",[true]);
@@ -27,10 +32,10 @@ class SocketObject {
       
       this.sock.on('seek', (data) => {
         setTimeout(() => {
-          this.seekable=false;
+          seek_callback_false();
           this.video.currentTime=data['new_time'];
-          jQuery("video").trigger("pause",[true]);
-          this.seekable=true;
+          jQuery("video").trigger("pause",[true]).then
+          seek_callback_true();
         },(data['time']-(new Date()/1000))*1000)
         
       });
