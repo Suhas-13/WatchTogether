@@ -1,4 +1,5 @@
 let tabid;
+let inSession=false;
 function getRandomToken() {
     var randomPool = new Uint8Array(32);
     crypto.getRandomValues(randomPool);
