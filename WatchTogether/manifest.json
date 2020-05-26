@@ -9,7 +9,9 @@
     "activeTab",
     "tabs",
     "alarms",
-    "storage"
+    "storage",
+    "history",
+    "webNavigation"
  ],
   "content_scripts": [
     {

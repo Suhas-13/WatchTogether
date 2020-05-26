@@ -8,20 +8,21 @@ chrome.runtime.onMessage.addListener(
         */
        let sess_token;
        if (request.intent!='destroy') {
-          sess_token=request.value;
+        sess_token=request.value;
+        chrome.storage.local.set({'sess_token': sess_token});
+        chrome.storage.local.set({'sess_url': document.location.href});
+        chrome.storage.local.set({'inSession': true});
        }
-       
-       chrome.storage.local.set({'sess_token': sess_token});
-       chrome.storage.local.set({'sess_url': document.location.href.split('?')[0]});
+
        chrome.storage.local.get('token', function (result) {
 
         if (request.intent=="create") {
-          
+                chrome.runtime.sendMessage({intent:"setTabId"})
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
                 formData.append('uniqueID', result['token']);
                 formData.append("username","test");
-                formData.append("url",document.location.href.split('?')[0]);
+                formData.append("url",document.location.href);
                 formData.append("currentTime",(video.currentTime));
                 formData.append("playing",(!video.paused));
                 formData.append("sessionID",request["value"]);
@@ -29,12 +30,10 @@ chrome.runtime.onMessage.addListener(
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
-                  }).then( (response) => { 
-                    console.log(response)
-                 });
+                  });
                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
                  s.startSession();
-                }
+            }
         else if (request.intent=="join") {
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
@@ -52,31 +51,42 @@ chrome.runtime.onMessage.addListener(
                  s.startSession();
                }
         else if (request.intent=="destroy") {
-          s.stopSession();
-        }              
-    });
+          if (s!=undefined) {
+            s.stopSession();
+            jQuery("video").off();
+          }
+          
+          chrome.storage.local.set({'sess_token': ""});
+          chrome.storage.local.set({'sess_url': ""});
+          chrome.storage.local.set({'inSession': false});
+
+        }   
+        else if (request.intent=="changeUrl") {
+          chrome.storage.local.set({'sess_url': document.location.href});
+          video=document.getElementsByTagName("video")[0];
+          let formData = new FormData();
+          formData.append('uniqueID', result['token']);
+          formData.append("username","test");
+          formData.append("sessionID",request["value"]);
+          fetch('https://192.168.86.36/join_session', {
+              method: "post",
+              body: formData,
+              mode: 'no-cors'
+            }).then( (response) => { 
+              console.log(response)
+            });
+            s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+            s.startSession();
+            s.forceChangeUrl(document.location.href);
+        }
     return true;
         
     });
-
-function main (evt) {
-  if (!s) {
-    chrome.storage.local.get(["sess_token","sess_url"], function (result) {
-      url=document.location.href.split('?')[0]
-      if (result["sess_token"] != "" && result["sess_url"] == url) {
-        let videos=document.getElementsByTagName("video");
-        if (videos.length !=0) {
-          s=new SocketObject(videos[0],result['sess_token'],result['token']);
-          s.startSession();
-        }
-  }})
-  }
-  
-}
+  });
 
 
-window.addEventListener ("load", main, false);
 
+    
 
 
    

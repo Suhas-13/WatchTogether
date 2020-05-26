@@ -42,6 +42,14 @@ class SocketObject {
         },(data['time']-(new Date()/1000))*1000)
         
       });
+
+      
+      this.sock.on('forceChangeUrl', (data) => {
+        document.location.href=data['new_url'];
+        setTimeout(() => {
+          $("video").trigger("pause",[true]);
+        },(data['time']-(new Date()/1000))*1000)
+      });
       
       let ignoreNextPlay=false;
       let ignoreNextPause=false;
@@ -109,8 +117,9 @@ class SocketObject {
     stopSession() {
       
         this.sock.disconnect();
-        chrome.storage.local.set({'sess_token': ""});
-        chrome.storage.local.set({'sess_url': ""});
         jQuery("video").off();
+    }
+    forceChangeUrl(url) {
+      this.sock.emit("forceChangeUrl",{"new_url":document.location.href,"SESSID":this.sess_token});
     }
   }

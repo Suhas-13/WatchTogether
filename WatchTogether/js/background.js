@@ -1,4 +1,4 @@
-
+let tabid;
 function getRandomToken() {
     var randomPool = new Uint8Array(32);
     crypto.getRandomValues(randomPool);
@@ -18,18 +18,81 @@ chrome.runtime.onInstalled.addListener(function(details){
         let formData = new FormData();
         formData.append("token",token);
     }
+    return true;
 });
+chrome.runtime.onMessage.addListener( 
+    function(request,sender,sendResponse) {
+        if (request.intent=="setTabId") {
+            tabid=sender.tab.id;
+        }
+        return true;
+    }
+)
 chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
-    if (changeInfo.status == 'complete') {
-  
-        chrome.storage.local.get(["sess_token","sess_url"], function (result) {
-            if (result["sess_token"] != "" && result["sess_url"] == document.location.href.split('?')[0]) {
+    console.log(changeInfo);
+    console.log(changeInfo.url);
 
-                chrome.tabs.sendMessage(tabId, {value: val2,intent:"rejoin"}, function(response) {
+        
+    if (changeInfo.url) {
+        inSession=true;
+        console.log("session true")
 
-                });
-
-
-            }
-        })}
-  })
+        chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
+            if (result['inSession']) {
+                console.log("difURL")
+                
+                chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
+                    
+                    if (result) {
+                        if (tabid!="") {
+                            chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
+                                tabid=tabId
+                                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
+                            });
+                            
+                        }
+                        else {
+                            tabid=tabId
+                            chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
+                        }
+                        
+                    }
+                    
+                    else {
+                        tabid="";
+                        chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
+                        chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {});
+                    }
+            })
+        
+            }            
+    
+        })
+    }
+    else if(changeInfo.status=="complete") {
+        if (inSession) {
+            inSession=false;
+            console.log("session false")
+        }
+        else {
+            chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
+            
+                if (result["inSession"]) {
+                    
+                
+                       
+                    console.log("sameURL")
+                     
+                    tabid=tabId
+                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"destroy"}, function(response) {
+                        chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
+                    });
+                    
+                    
+                    }
+                    
+                })
+        }
+        }
+        
+    })

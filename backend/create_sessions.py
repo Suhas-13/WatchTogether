@@ -4,7 +4,11 @@ from flask import request
 import socketio
 from urllib.parse import unquote
 import time
+import threading
 TOLERANCE=0.5
+
+global lock
+lock = threading.Lock()
 
 sessions={}
 users={}
@@ -28,6 +32,12 @@ def pause(sid, data):
 def seek(sid, data):
     sio.emit("seek",{"time":time.time()+(TOLERANCE),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['playing']=False
+
+@sio.on("forceChangeUrl")
+def forceChangeUrl(sid, data):
+    sio.emit("forceChangeUrl",{"time":time.time()+(TOLERANCE),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
+    sessions[data['SESSID']]['url']=data['new_url']
+
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
@@ -35,35 +45,36 @@ def connect(sid, environ):
     if (unique_id!="undefined" and unique_id is not None):
         users[unique_id]['socketID']=sid
         sessionID=users[unique_id]['sessionID']
-        sessions[sessionID]['users'].append(sid)
-        
+        with lock:
+            sessions[sessionID]['users'].append(sid)
         sio.enter_room(sid,sessionID)
         playing=sessions[sessionID]['playing']
-        #sio.emit("pause",{"time":time.time()+TOLERANCE})
-        users[unique_id]['currentTime']=sessions
+        sio.emit("pause",{"time":time.time()+TOLERANCE})
+        users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
         if (playing):
-            #sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
         else:
-            #sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("pause",{"time":time.time()+TOLERANCE+0.4},room=sid)
-        for i in sessions.keys():
-            if sid in sessions[i]['users']:
-                sessions[i]['users'].pop(sessions[i]['users'].index(sid))
-        
+ 
+            
 
 
 @sio.on("disconnect")
 def disconnect(sid):
-    for i in users:
-        if users[i]['socketID']==sid:
-            unique_id=i
-            break
-    sessionID=users[unique_id]['sessionID']
-    sio.leave_room(sid,sessionID)
-    user_list=sessions[sessionID]['users']
-    user_list.pop(user_list.index(sid))
-    del(users[unique_id])
+    unique_id=""
+    with lock:
+        for i in users:
+            if users[i]['socketID']==sid:
+                unique_id=i
+                break
+    if unique_id!="":
+        sessionID=users[unique_id]['sessionID']
+        sio.leave_room(sid,sessionID)
+        user_list=sessions[sessionID]['users']
+        user_list.pop(user_list.index(sid))
+        del(users[unique_id])
     
 
 @app.route("/create_session",methods=['POST'])
