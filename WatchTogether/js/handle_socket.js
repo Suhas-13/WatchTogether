@@ -20,6 +20,7 @@ class SocketObject {
       this.sock.on('play', (data) => {
         setTimeout((data) => {
           jQuery('video').trigger("play",[true]);
+          console.log("received play");
           //this.setPlay(true);
         },(data['time']-(new Date()/1000))*1000)
         
@@ -28,6 +29,7 @@ class SocketObject {
       this.sock.on('pause', (data) => {
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
+          console.log("received pause");
           //this.setPause(true);
         },(data['time']-(new Date()/1000))*1000)
         

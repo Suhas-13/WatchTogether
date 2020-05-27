@@ -38,6 +38,7 @@ def forceChangeUrl(sid, data):
     sio.emit("forceChangeUrl",{"time":time.time()+(TOLERANCE),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['url']=data['new_url']
     pause(sid,data)
+    
 
 @sio.on("connect")
 def connect(sid, environ):
@@ -52,14 +53,14 @@ def connect(sid, environ):
         with lock:
             sessions[sessionID]['users'].append(sid)
         sio.enter_room(sid,sessionID)
-        playing=sessions[sessionID]['playing']
         sio.emit("pause",{"time":time.time()+TOLERANCE})
         users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
-        if (playing):
-            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+        print("New connection state is " +str(sessions[sessionID]['playing']))
+        if (sessions[sessionID]['playing']):
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
         else:
-            sio.emit("seek",{"time":time.time()+TOLERANCE+0.2,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("pause",{"time":time.time()+TOLERANCE+0.4},room=sid)
  
             

@@ -46,7 +46,8 @@ chrome.runtime.onMessage.addListener(
                   })
                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
                  s.startSession();
-               }
+                 s.sock.emit("pause",{SESSID:sess_token})
+        }
         else if (request.intent=="changeUrl") {
           chrome.storage.local.set({'sess_url': document.location.href});
           video=document.getElementsByTagName("video")[0];
