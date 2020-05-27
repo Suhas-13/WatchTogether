@@ -42,7 +42,10 @@ def forceChangeUrl(sid, data):
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
     unique_id=(query_string.split("&")[0].split("id=")[1])
+    
     if (unique_id!="undefined" and unique_id is not None):
+        if unique_id not in users:
+            users[unique_id]={"socketID":None,"sessionID":None,"currentTime":None}
         users[unique_id]['socketID']=sid
         sessionID=users[unique_id]['sessionID']
         with lock:
