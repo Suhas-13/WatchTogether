@@ -1,4 +1,3 @@
-let tabid=""
 let inSession=false;
 let triggerChangeUrl=true;
 function getRandomToken() {
@@ -24,12 +23,9 @@ chrome.runtime.onInstalled.addListener(function(details){
 });
 chrome.runtime.onMessage.addListener( 
     function(request,sender,sendResponse) {
-        if (request.intent=="setTabId") {
-            tabid=sender.tab.id;
-        }
         if (request.intent=="disableChangingUrl") {
             triggerChangeUrl=false;
-            console.log("disabling changing urls");
+            console.log("disabling changing urls"); 
         }
         return true;
     }
@@ -45,51 +41,25 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
 
         chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
             if (result['inSession']) {
-                
                 console.log("difURL")
                 if (triggerChangeUrl) {
                     
                     chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
                     
                         if (response) {
-                            if (tabid!="" && tabid!=undefined) {
-                                chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
-                                    tabid=tabId
-                                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
-                                });
-                                
-                            }
-                            else {
-                                tabid=tabId
-                                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
-                            }
-                            
+                            chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
                         }
                         
                         else {                        
                             chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
-                            tabid="";   
                         }
                 })
                 }
                 else {
                     triggerChangeUrl=true;
                     console.log("sameURL")
-                    
-                        if (tabid!="" && tabid!=undefined) {
-                            chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
-                                tabid=tabId
-                                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
-                            });
-                            
-                        }
-                        else {
-                            tabid=tabId
-                            chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
-                        }
-                        
-                    }
-
+                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
+                }
                 }
                 
         
@@ -102,12 +72,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
         }
         else {
             chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
-            
                 if (result["inSession"]) {                                    
-                    tabid=tabId
-                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"destroy"}, function(response) {
-                        chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
-                    });                    
+                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
                     }
                 })
         }

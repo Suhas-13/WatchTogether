@@ -7,17 +7,22 @@ chrome.runtime.onMessage.addListener(
           });
         */
        let sess_token;
-       if (request.intent!='destroy') {
-        sess_token=request.value;
-        chrome.storage.local.set({'sess_token': sess_token});
-        chrome.storage.local.set({'sess_url': document.location.href});
-        chrome.storage.local.set({'inSession': true});
-       }
+       
+        if (s!=undefined) {
+          s.stopSession();
+          jQuery("video").off();
+        }
+        if (request.intent!="destroy") {
+          sess_token=request.value;
+          chrome.storage.local.set({'sess_token': sess_token});
+          chrome.storage.local.set({'sess_url': document.location.href});
+          chrome.storage.local.set({'inSession': true});
+        }
+        
 
        chrome.storage.local.get('token', function (result) {
 
         if (request.intent=="create") {
-                chrome.runtime.sendMessage({intent:"setTabId"})
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
                 formData.append('uniqueID', result['token']);
@@ -50,14 +55,6 @@ chrome.runtime.onMessage.addListener(
                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
                  s.startSession();
                }
-        else if (request.intent=="destroy") {
-          if (s!=undefined) {
-            s.stopSession();
-            jQuery("video").off();
-          }
-          
-
-        }   
         else if (request.intent=="changeUrl") {
           chrome.storage.local.set({'sess_url': document.location.href});
           video=document.getElementsByTagName("video")[0];
