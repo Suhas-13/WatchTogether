@@ -119,6 +119,6 @@ class SocketObject {
         jQuery("video").off();
     }
     forceChangeUrl(url) {
-      this.sock.emit("forceChangeUrl",{"new_url":document.location.href,"SESSID":this.sess_token});
+      this.sock.emit("forceChangeUrl",{"new_url":url,"SESSID":this.sess_token});
     }
   }

@@ -3,6 +3,9 @@ function onDisconnect() {
     document.getElementById("disconnect").style.display="none";
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         chrome.tabs.sendMessage(tabs[0].id, {intent:"destroy"}, function(response) {
+        chrome.storage.local.set({'sess_token': ""});
+        chrome.storage.local.set({'sess_url': ""});
+        chrome.storage.local.set({'inSession': false});
     });
 });
 

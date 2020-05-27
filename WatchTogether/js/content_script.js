@@ -56,9 +56,6 @@ chrome.runtime.onMessage.addListener(
             jQuery("video").off();
           }
           
-          chrome.storage.local.set({'sess_token': ""});
-          chrome.storage.local.set({'sess_url': ""});
-          chrome.storage.local.set({'inSession': false});
 
         }   
         else if (request.intent=="changeUrl") {
