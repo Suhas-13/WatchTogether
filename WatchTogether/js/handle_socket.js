@@ -46,7 +46,6 @@ class SocketObject {
       this.sock.on('forceChangeUrl', (data) => {
         chrome.runtime.sendMessage({intent: "disableUrlChange"}, function(response) {});
         setTimeout(() => {
-          $("video").trigger("pause",[true]);
           document.location.href=data['new_url'];
         },(data['time']-(new Date()/1000))*1000)
       });
