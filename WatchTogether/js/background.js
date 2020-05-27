@@ -23,7 +23,6 @@ chrome.runtime.onInstalled.addListener(function(details){
 });
 chrome.runtime.onMessage.addListener( 
     function(request,sender,sendResponse) {
-        alert(request.intent);
         if (request.intent=="disableChangingUrl") {
             triggerChangeUrl=false;
         }

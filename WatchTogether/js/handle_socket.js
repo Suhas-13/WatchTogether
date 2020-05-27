@@ -47,7 +47,7 @@ class SocketObject {
         chrome.runtime.sendMessage({intent: "disableChangingUrl"}, function(response) {
           setTimeout(() => {
             document.location.href=data['new_url'];
-          },(data['time']-(new Date()/1000))*1000)
+          },(data['time']-(new Date()/1000))*1000+1.5)
         });
       });
       
