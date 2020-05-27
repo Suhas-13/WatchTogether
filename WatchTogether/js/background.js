@@ -10,12 +10,6 @@ function getRandomToken() {
     }
     return hex;
 }
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-        if (request.disableUrlChange) {
-            triggerChangeUrl=false;
-        }
-    })
 
 chrome.runtime.onInstalled.addListener(function(details){
     if(details.reason == "install"){
@@ -33,6 +27,10 @@ chrome.runtime.onMessage.addListener(
         if (request.intent=="setTabId") {
             tabid=sender.tab.id;
         }
+        if (request.disableUrlChange) {
+            triggerChangeUrl=false;
+            console.log("disabling changing urls");
+        }
         return true;
     }
 )
@@ -46,32 +44,54 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
         console.log("session true")
 
         chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
-            if (triggerChangeUrl && result['inSession']) {
-                triggerChangeUrl=true;
+            if (result['inSession']) {
+                
                 console.log("difURL")
-                chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
+                if (triggerChangeUrl) {
                     
+                    chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
+                    
+                        if (result) {
+                            if (tabid!="") {
+                                chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
+                                    tabid=tabId
+                                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
+                                });
+                                
+                            }
+                            else {
+                                tabid=tabId
+                                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
+                            }
+                            
+                        }
+                        
+                        else {
+                            tabid="";
+                            chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
+                            chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {});
+                        }
+                })
+                }
+                else {
+                    triggerChangeUrl=true;
                     if (result) {
                         if (tabid!="") {
                             chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
                                 tabid=tabId
-                                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
+                                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
                             });
                             
                         }
                         else {
                             tabid=tabId
-                            chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
+                            chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
                         }
                         
                     }
-                    
-                    else {
-                        tabid="";
-                        chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
-                        chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {});
-                    }
-            })
+
+                }
+                
         
             }            
     
