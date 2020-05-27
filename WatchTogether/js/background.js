@@ -35,8 +35,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
         inSession=true; 
         chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
             if (result['inSession']) {
+                alert(triggerChangeUrl);
                 if (triggerChangeUrl) {
-                    
                     chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
                     
                         if (response) {
@@ -47,16 +47,14 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                             alert("setting false");          
                             chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
                         }
-                })
+                    })
                 }
                 else {
                     triggerChangeUrl=true;
                     chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
                 }
-                }
-                
-        
-            })           
+            }
+        })           
     
     }
     else if(changeInfo.status=="complete") {
