@@ -1,5 +1,6 @@
 let tabid;
 let inSession=false;
+let triggerChangeUrl=true;
 function getRandomToken() {
     var randomPool = new Uint8Array(32);
     crypto.getRandomValues(randomPool);
@@ -9,6 +10,12 @@ function getRandomToken() {
     }
     return hex;
 }
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request.disableUrlChange) {
+            triggerChangeUrl=false;
+        }
+    })
 
 chrome.runtime.onInstalled.addListener(function(details){
     if(details.reason == "install"){
@@ -39,9 +46,9 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
         console.log("session true")
 
         chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
-            if (result['inSession']) {
+            if (triggerChangeUrl && result['inSession']) {
+                triggerChangeUrl=true;
                 console.log("difURL")
-                
                 chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
                     
                     if (result) {
@@ -73,25 +80,16 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
     else if(changeInfo.status=="complete") {
         if (inSession) {
             inSession=false;
-            console.log("session false")
         }
         else {
             chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
             
-                if (result["inSession"]) {
-                    
-                
-                       
-                    console.log("sameURL")
-                     
+                if (result["inSession"]) {                                    
                     tabid=tabId
                     chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"destroy"}, function(response) {
                         chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
-                    });
-                    
-                    
+                    });                    
                     }
-                    
                 })
         }
         }

@@ -4,8 +4,7 @@ class SocketObject {
        this.video=video;
        this.sess_token=sess_token;
        this.unique_token=unique_token;
-       this.seekable=true;
-    
+       this.seekable=true;  
     }
 
     startSession() {
@@ -47,6 +46,7 @@ class SocketObject {
       this.sock.on('forceChangeUrl', (data) => {
         document.location.href=data['new_url'];
         setTimeout(() => {
+          chrome.runtime.sendMessage({intent: "disableUrlChange"}, function(response) {});
           $("video").trigger("pause",[true]);
         },(data['time']-(new Date()/1000))*1000)
       });
@@ -115,7 +115,6 @@ class SocketObject {
 
     }
     stopSession() {
-      
         this.sock.disconnect();
         jQuery("video").off();
     }
