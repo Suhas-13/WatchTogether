@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener(
         if (request.intent=="setTabId") {
             tabid=sender.tab.id;
         }
-        if (request.disableUrlChange) {
+        if (request.intent=="disableChangingUrl") {
             triggerChangeUrl=false;
             console.log("disabling changing urls");
         }
