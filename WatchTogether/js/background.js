@@ -26,7 +26,6 @@ chrome.runtime.onMessage.addListener(
         if (request.intent=="disableChangingUrl") {
             triggerChangeUrl=false;
         }
-        return true;
     }
 )
 chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
@@ -62,9 +61,9 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
                 if (result["inSession"]) {                                    
                     chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
-                    }
-                })
+                }
+            })
         }
-        }
+     }
         
     })
