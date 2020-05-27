@@ -43,9 +43,7 @@ chrome.runtime.onMessage.addListener(
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
-                  }).then( (response) => { 
-                    console.log(response)
-                 });
+                  })
                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
                  s.startSession();
                }
@@ -60,10 +58,8 @@ chrome.runtime.onMessage.addListener(
               method: "post",
               body: formData,
               mode: 'no-cors'
-            }).then( (response) => { 
-              console.log(response)
-            });
-            s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+            })
+            s=new SocketObject(video,sess_token,result['token']);
             s.startSession();
             s.forceChangeUrl(document.location.href);
         }

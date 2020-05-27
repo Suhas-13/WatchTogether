@@ -31,17 +31,10 @@ chrome.runtime.onMessage.addListener(
     }
 )
 chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
-    console.log(changeInfo);
-    console.log(changeInfo.url);
-
-        
-    if (changeInfo.url) {
-        inSession=true;
-        console.log("session true")
-
+  if (changeInfo.url && changeInfo.url.includes("chrome://")==false) {
+        inSession=true; 
         chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
             if (result['inSession']) {
-                console.log("difURL")
                 if (triggerChangeUrl) {
                     
                     chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
@@ -58,7 +51,6 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 }
                 else {
                     triggerChangeUrl=true;
-                    console.log("sameURL")
                     chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
                 }
                 }
