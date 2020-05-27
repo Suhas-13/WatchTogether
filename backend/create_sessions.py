@@ -37,6 +37,7 @@ def seek(sid, data):
 def forceChangeUrl(sid, data):
     sio.emit("forceChangeUrl",{"time":time.time()+(TOLERANCE),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['url']=data['new_url']
+    pause(sid,data)
 
 @sio.on("connect")
 def connect(sid, environ):

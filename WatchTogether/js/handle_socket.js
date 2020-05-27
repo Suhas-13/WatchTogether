@@ -62,12 +62,9 @@ class SocketObject {
           else {
             ignoreNextPlay=false;
           }
-          console.log("script play");
         }
         else {
           if (!ignoreNextPlay) {
-            console.log("user play");
-
             jQuery('video').trigger("pause",[true]);
             this.sock.emit("play",{SESSID:this.sess_token});
           }
@@ -85,12 +82,9 @@ class SocketObject {
           else {
             ignoreNextPause=false;
           }
-          console.log("script pause");
         }
         else {
           if (!ignoreNextPause) {
-            console.log("user pause");
-
             jQuery('video').trigger("play",[true]);
             this.sock.emit("pause",{SESSID:this.sess_token});
           }
