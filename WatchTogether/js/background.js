@@ -23,9 +23,9 @@ chrome.runtime.onInstalled.addListener(function(details){
 });
 chrome.runtime.onMessage.addListener( 
     function(request,sender,sendResponse) {
+        alert(request.intent);
         if (request.intent=="disableChangingUrl") {
             triggerChangeUrl=false;
-            alert("disabling changing urls"); 
         }
         return true;
     }
@@ -35,7 +35,6 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
         inSession=true; 
         chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
             if (result['inSession']) {
-                alert(triggerChangeUrl);
                 if (triggerChangeUrl) {
                     chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
                     
@@ -44,7 +43,6 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                         }
                         
                         else {              
-                            alert("setting false");          
                             chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
                         }
                     })

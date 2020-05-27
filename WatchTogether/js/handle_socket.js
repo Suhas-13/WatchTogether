@@ -44,10 +44,11 @@ class SocketObject {
 
       
       this.sock.on('forceChangeUrl', (data) => {
-        chrome.runtime.sendMessage({intent: "disableUrlChange"}, function(response) {});
-        setTimeout(() => {
-          document.location.href=data['new_url'];
-        },(data['time']-(new Date()/1000))*1000)
+        chrome.runtime.sendMessage({intent: "disableChangingUrl"}, function(response) {
+          setTimeout(() => {
+            document.location.href=data['new_url'];
+          },(data['time']-(new Date()/1000))*1000)
+        });
       });
       
       let ignoreNextPlay=false;
