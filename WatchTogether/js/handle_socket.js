@@ -116,7 +116,6 @@ class SocketObject {
     }
     stopSession() {
         this.sock.disconnect();
-        jQuery("video").off();
     }
     forceChangeUrl(url) {
       this.sock.emit("forceChangeUrl",{"new_url":url,"SESSID":this.sess_token});

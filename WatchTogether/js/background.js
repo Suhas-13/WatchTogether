@@ -50,7 +50,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                             chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
                         }
                         
-                        else {                        
+                        else {              
+                            alert("setting false");          
                             chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
                         }
                 })

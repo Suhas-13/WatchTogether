@@ -1,16 +1,10 @@
 let s;
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        /*
-        chrome.storage.local.set({token: 'd2f459ac9a4d5acd7f2b51d4ebe9fd75d79e8283ac46225f594a479ff7b'}, function() {
-            console.log('Value is set to ');
-          });
-        */
        let sess_token;
        
         if (s!=undefined) {
           s.stopSession();
-          jQuery("video").off();
         }
         if (request.intent!="destroy") {
           sess_token=request.value;
