@@ -51,7 +51,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                     
                     chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
                     
-                        if (result) {
+                        if (response) {
                             if (tabid!="") {
                                 chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
                                     tabid=tabId
@@ -75,7 +75,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 }
                 else {
                     triggerChangeUrl=true;
-                    if (result) {
+                    console.log("sameURL")
+                    
                         if (tabid!="") {
                             chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
                                 tabid=tabId
@@ -93,9 +94,8 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 }
                 
         
-            }            
+            })           
     
-        })
     }
     else if(changeInfo.status=="complete") {
         if (inSession) {
