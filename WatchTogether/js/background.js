@@ -1,5 +1,6 @@
 let inSession=false;
 let triggerChangeUrl=true;
+let urlChanged=false;
 function getRandomToken() {
     var randomPool = new Uint8Array(32);
     crypto.getRandomValues(randomPool);
@@ -47,7 +48,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                 }
                 else {
                     triggerChangeUrl=true;
-                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
+                    urlChanged=true;
                 }
             }
         })           
@@ -56,6 +57,12 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
     else if(changeInfo.status=="complete") {
         if (inSession) {
             inSession=false;
+            if (urlChanged) {
+                chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
+                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
+                })
+                urlChanged=false;
+            }
         }
         else {
             chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
