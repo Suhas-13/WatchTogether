@@ -1,4 +1,4 @@
-let tabid;
+let tabid=""
 let inSession=false;
 let triggerChangeUrl=true;
 function getRandomToken() {
@@ -52,7 +52,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                     chrome.tabs.executeScript( tab.id, {code:"confirm('Would you like to continue the session?')"},function(response) {
                     
                         if (response) {
-                            if (tabid!="") {
+                            if (tabid!="" && tabid!=undefined) {
                                 chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
                                     tabid=tabId
                                     chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"changeUrl"}, function(response) {});
@@ -67,7 +67,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                         }
                         
                         else {
-                            if (tabid!="") {
+                            if (tabid!="" && tabid!=undefined) {
                                 chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
                                 chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {});
                                 tabid="";
@@ -80,7 +80,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                     triggerChangeUrl=true;
                     console.log("sameURL")
                     
-                        if (tabid!="") {
+                        if (tabid!="" && tabid!=undefined) {
                             chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {
                                 tabid=tabId
                                 chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
