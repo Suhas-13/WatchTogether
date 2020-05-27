@@ -67,9 +67,12 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
                         }
                         
                         else {
-                            tabid="";
-                            chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
-                            chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {});
+                            if (tabid!="") {
+                                chrome.storage.local.set({"sess_token":"","sess_url":"","inSession":false}, function() {});
+                                chrome.tabs.sendMessage(tabid, {value: result['sess_token'],intent:"destroy"}, function(response) {});
+                                tabid="";
+                            }
+                            
                         }
                 })
                 }
