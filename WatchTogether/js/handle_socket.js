@@ -44,10 +44,10 @@ class SocketObject {
 
       
       this.sock.on('forceChangeUrl', (data) => {
-        document.location.href=data['new_url'];
+        chrome.runtime.sendMessage({intent: "disableUrlChange"}, function(response) {});
         setTimeout(() => {
-          chrome.runtime.sendMessage({intent: "disableUrlChange"}, function(response) {});
           $("video").trigger("pause",[true]);
+          document.location.href=data['new_url'];
         },(data['time']-(new Date()/1000))*1000)
       });
       
