@@ -2,10 +2,13 @@ from flask import Flask
 from flask import Response
 from flask import request
 import socketio
+import time
 from urllib.parse import unquote
 import time
 import threading
-TOLERANCE=0.8
+DEFAULT_TOLERANCE=1
+MAX_LATENCY=10
+MAX_PINGS=10
 
 global lock
 lock = threading.Lock()
@@ -15,27 +18,43 @@ users={}
 sio = socketio.Server(logger=True,cors_allowed_origins='*',async_mode='threading')
 app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
+@sio.on("latency_check")
+def latency_check(sid, data):
+    unique_id=data['unique_id']
+    users[unique_id]['latency'].append(min(MAX_LATENCY,float(data['latency'])))
+    pings=(users[unique_id]['latency'])
+    ping_count=len(pings)
+    if len(users[unique_id]['latency'])>=MAX_PINGS:
+        current_latency=sum(pings)/ping_count
+        print("ltency is " + str(current_latency))
+        current_server_latency=sessions[data['SESSID']]['latency']
+        sessions[data['SESSID']]['latency']=max(current_server_latency,current_latency)
+def calculate_latency(unique_id,sid):
+    for i in range(MAX_PINGS):
+        sio.emit("latency_check",{"time":time.time()},room=sid)
 
 @sio.on("play")
 def play(sid, data):
-    sio.emit("play",{"time":time.time()+TOLERANCE},room=data['SESSID'])
+    print(sessions[data['SESSID']]['latency'])
+    sio.emit("play",{"time":time.time()+sessions[data['SESSID']]['latency']},room=data['SESSID'])
     sessions[data['SESSID']]['playing']=True
 
     
 @sio.on("pause")
 def pause(sid, data):
- 
-    sio.emit("pause",{"time":time.time()+TOLERANCE},room=data['SESSID'])
+    print(sessions[data['SESSID']]['latency'])
+
+    sio.emit("pause",{"time":time.time()+sessions[data['SESSID']]['latency']},room=data['SESSID'])
     sessions[data['SESSID']]['playing']=False
     
 @sio.on("seek")
 def seek(sid, data):
-    sio.emit("seek",{"time":time.time()+(TOLERANCE),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
+    sio.emit("seek",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['playing']=False
 
 @sio.on("forceChangeUrl")
 def forceChangeUrl(sid, data):
-    sio.emit("forceChangeUrl",{"time":time.time()+(TOLERANCE),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
+    sio.emit("forceChangeUrl",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['url']=data['new_url']
     pause(sid,data)
     
@@ -59,16 +78,18 @@ def connect(sid, environ):
         with lock:
             sessions[sessionID]['users'].append(sid)
         sio.enter_room(sid,sessionID)
-        sio.emit("pause",{"time":time.time()+TOLERANCE})
+        sio.emit("pause",{"time":time.time()+DEFAULT_TOLERANCE})
         users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
         if (sessions[sessionID]['playing']):
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("seek",{"time":time.time()+DEFAULT_TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             if (shouldAutoPlay):
-                sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
+                sio.emit("play",{"time":time.time()+DEFAULT_TOLERANCE+0.4},room=sid)
         else:
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
-            sio.emit("pause",{"time":time.time()+TOLERANCE+0.4},room=sid)
- 
+            sio.emit("seek",{"time":time.time()+DEFAULT_TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
+            sio.emit("pause",{"time":time.time()+DEFAULT_TOLERANCE+0.4},room=sid)
+    calculate_latency(unique_id,sid)
+
+
             
 
 
@@ -100,8 +121,8 @@ def create_session():
         if len(sessionID) == 0 or len(url) == 0 or sessionID in sessions:
             return Response("SessionID already in use", status=400)
         else:
-            sessions[sessionID]={"users":[],"url":url,"playing":playing=="true","serverTime":currentTime}
-            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None}
+            sessions[sessionID]={"users":[],"url":url,"playing":playing=="true","serverTime":currentTime,"latency":DEFAULT_TOLERANCE}
+            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None,"latency":[]}
             return Response("Session created succesfully",status=200)
     except Exception as e:
         print(e)

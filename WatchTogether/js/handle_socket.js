@@ -50,8 +50,11 @@ class SocketObject {
         setTimeout(() => {
           seek_callback_false();
           this.video.currentTime=data['new_time'];
-          jQuery("video").trigger("pause",[true])
         },(data['time']-(new Date()/1000))*1000)
+        setTimeout(() => {
+          jQuery("video").trigger("pause",[true])
+        },(data['time']+0.2-(new Date()/1000))*1000)
+        
         
       });
 
@@ -62,6 +65,11 @@ class SocketObject {
             document.location.href=data['new_url'];
           },(data['time']-(new Date()/1000))*1000+1.5)
         });
+      });
+
+      this.sock.on('latency_check', (data) => {
+        let latency_val=(new Date().getTime()/1000)-data['time']
+        this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,latency:latency_val});
       });
       
       let ignoreNextPlay=false;
@@ -83,7 +91,7 @@ class SocketObject {
               this.urlChange=false
             }
             else {
-              this.sock.emit("play",{SESSID:this.sess_token});
+              this.sock.emit("play",{SESSID:this.sess_token,unique_id:this.unique_token});
             }
           }
           else {
@@ -104,7 +112,7 @@ class SocketObject {
         else {
           if (!ignoreNextPause) {
             jQuery('video').trigger("play",[true]);
-            this.sock.emit("pause",{SESSID:this.sess_token});
+            this.sock.emit("pause",{SESSID:this.sess_token,unique_id:this.unique_token});
           }
           else {
             ignoreNextPause=false;
@@ -116,7 +124,7 @@ class SocketObject {
         if (this.seekable) {
           jQuery('video').trigger("pause",[true]);
           
-          this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime});
+          this.sock.emit("seek",{SESSID:this.sess_token,time:this.video.currentTime,unique_id:this.unique_token});
 
         }
         else {
@@ -131,6 +139,6 @@ class SocketObject {
         jQuery("video").off();
     }
     forceChangeUrl(url) {
-      this.sock.emit("forceChangeUrl",{"new_url":url,"SESSID":this.sess_token});
+      this.sock.emit("forceChangeUrl",{"new_url":url,"SESSID":this.sess_token,unique_id:this.unique_token});
     }
   }
