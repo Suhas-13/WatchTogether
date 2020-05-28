@@ -74,6 +74,8 @@ class SocketObject {
             jQuery('video').trigger("pause",[true]);
             if (this.urlChange) {
               this.urlChange=false
+            }
+            else {
               this.sock.emit("play",{SESSID:this.sess_token});
             }
           }
