@@ -43,10 +43,14 @@ def forceChangeUrl(sid, data):
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
-    params=(query_string.split("&")[0].split("id=")[1]).split("&")
+    params=query_string[query_string.find("?id=")+4:len(query_string)]
+    params=params.split("&")
     unique_id=params[0]
-    shouldAutoPlay=params[1]
-    
+    shouldAutoPlay=params[1].split("=")[1]
+    if (shouldAutoPlay)=="True":
+        shouldAutoPlay=True
+    else:
+        shouldAutoPlay=False    
     if (unique_id!="undefined" and unique_id is not None):
         if unique_id not in users:
             users[unique_id]={"socketID":None,"sessionID":None,"currentTime":None}
@@ -58,8 +62,8 @@ def connect(sid, environ):
         sio.emit("pause",{"time":time.time()+TOLERANCE})
         users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
         if (sessions[sessionID]['playing']):
+            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             if (shouldAutoPlay):
-                sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
                 sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
         else:
             sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
