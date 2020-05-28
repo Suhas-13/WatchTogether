@@ -59,7 +59,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
             inSession=false;
             if (urlChanged) {
                 chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
-                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join"}, function(response) {});
+                chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join",sendPause:1}, function(response) {});
                 })
                 urlChanged=false;
             }
@@ -67,7 +67,7 @@ chrome.tabs.onUpdated.addListener( function (tabId, changeInfo, tab) {
         else {
             chrome.storage.local.get(["sess_token","sess_url","inSession"], function (result) {
                 if (result["inSession"]) {                                    
-                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join",sendPause:true}, function(response) {});
+                    chrome.tabs.sendMessage(tabId, {value: result['sess_token'],intent:"join",sendPause:1}, function(response) {});
                 }
             })
         }

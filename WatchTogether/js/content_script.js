@@ -45,7 +45,7 @@ chrome.runtime.onMessage.addListener(
                     mode: 'no-cors'
                   })
                  if (request.sendPause==true) {
-                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],true);
+                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],1);
                  }
                  else {
                   s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
@@ -66,7 +66,7 @@ chrome.runtime.onMessage.addListener(
               body: formData,
               mode: 'no-cors'
             })
-            s=new SocketObject(video,sess_token,result['token']);
+            s=new SocketObject(video,sess_token,result['token'],2);
             s.startSession();
             s.forceChangeUrl(document.location.href);
         }

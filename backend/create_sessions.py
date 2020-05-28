@@ -5,7 +5,7 @@ import socketio
 from urllib.parse import unquote
 import time
 import threading
-TOLERANCE=0.5
+TOLERANCE=0.8
 
 global lock
 lock = threading.Lock()
@@ -43,7 +43,9 @@ def forceChangeUrl(sid, data):
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
-    unique_id=(query_string.split("&")[0].split("id=")[1])
+    params=(query_string.split("&")[0].split("id=")[1]).split("&")
+    unique_id=params[0]
+    shouldAutoPlay=params[1]
     
     if (unique_id!="undefined" and unique_id is not None):
         if unique_id not in users:
@@ -55,10 +57,10 @@ def connect(sid, environ):
         sio.enter_room(sid,sessionID)
         sio.emit("pause",{"time":time.time()+TOLERANCE})
         users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
-        print("New connection state is " +str(sessions[sessionID]['playing']))
         if (sessions[sessionID]['playing']):
-            sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
-            sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
+            if (shouldAutoPlay):
+                sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
+                sio.emit("play",{"time":time.time()+TOLERANCE+0.4},room=sid)
         else:
             sio.emit("seek",{"time":time.time()+TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
             sio.emit("pause",{"time":time.time()+TOLERANCE+0.4},room=sid)
