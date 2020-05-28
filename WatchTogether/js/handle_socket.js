@@ -69,6 +69,7 @@ class SocketObject {
 
       this.sock.on('latency_check', (data) => {
         let latency_val=(new Date().getTime()/1000)-data['time']
+        console.log(latency_val);
         this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,latency:latency_val});
       });
       

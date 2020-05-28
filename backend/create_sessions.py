@@ -21,15 +21,14 @@ app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 @sio.on("latency_check")
 def latency_check(sid, data):
     unique_id=data['unique_id']
-    users[unique_id]['latency'].append(min(MAX_LATENCY,float(data['latency'])))
+    users[unique_id]['latency'].append(min(MAX_LATENCY,data['latency']))
     pings=(users[unique_id]['latency'])
-    ping_count=len(pings)
-    if len(users[unique_id]['latency'])>=MAX_PINGS:
-        current_latency=sum(pings)/ping_count
-        print("ltency is " + str(current_latency))
+    if ping_count>=MAX_PINGS:
+        current_latency=sum(pings)/len(pings)
         current_server_latency=sessions[data['SESSID']]['latency']
         sessions[data['SESSID']]['latency']=max(current_server_latency,current_latency)
 def calculate_latency(unique_id,sid):
+    users[unique_id]['latency']=[]
     for i in range(MAX_PINGS):
         sio.emit("latency_check",{"time":time.time()},room=sid)
 
@@ -144,7 +143,6 @@ def join_session():
     return Response("Session not created yet",status=400)
 
 
-    
 
 if __name__ == "__main__":
     app.run(threaded=True,host="0.0.0.0",port=443,ssl_context=('cert.pem', 'key.pem'))

@@ -18,6 +18,7 @@ function onSubmit() {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             chrome.tabs.sendMessage(tabs[0].id, {value: val1,intent:"create"}, function(response) {
                 document.getElementById("disconnect").style.display="block";
+                document.getElementById("connect").style.display="none";
 
     
             });
@@ -29,6 +30,7 @@ function onSubmit() {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
             chrome.tabs.sendMessage(tabs[0].id, {value: val2,intent:"join"}, function(response) {
                 document.getElementById("disconnect").style.display="block";
+                document.getElementById("connect").style.display="none";
   
             });
         });
