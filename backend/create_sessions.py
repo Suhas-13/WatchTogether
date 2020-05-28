@@ -9,6 +9,7 @@ import threading
 DEFAULT_TOLERANCE=1
 MAX_LATENCY=10
 MAX_PINGS=10
+MAX_INTERVAL=300
 
 global lock
 lock = threading.Lock()
@@ -18,6 +19,9 @@ users={}
 sio = socketio.Server(logger=True,cors_allowed_origins='*',async_mode='threading')
 app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
+def check_interval(unique_id,sid):
+    if users[unique_id]['last_latency_check'] is None or users[unique_id]['last_latency_check']:
+        calculate_latency(unique_id,sid)
 @sio.on("latency_check")
 def latency_check(sid, data):
     unique_id=data['unique_id']
@@ -29,35 +33,36 @@ def latency_check(sid, data):
         sessions[data['SESSID']]['latency']=max(current_server_latency,current_latency)
 def calculate_latency(unique_id,sid):
     users[unique_id]['latency']=[]
+    users[unique_id]['last_latency_check']=time.time()
     for i in range(MAX_PINGS):
         sio.emit("latency_check",{"time":time.time()},room=sid)
-
+    
 @sio.on("play")
 def play(sid, data):
-    print(sessions[data['SESSID']]['latency'])
     sio.emit("play",{"time":time.time()+sessions[data['SESSID']]['latency']},room=data['SESSID'])
     sessions[data['SESSID']]['playing']=True
+    check_interval(data['unique_id'],sid)
 
     
 @sio.on("pause")
 def pause(sid, data):
-    print(sessions[data['SESSID']]['latency'])
-
     sio.emit("pause",{"time":time.time()+sessions[data['SESSID']]['latency']},room=data['SESSID'])
     sessions[data['SESSID']]['playing']=False
+    check_interval(data['unique_id'],sid)
     
 @sio.on("seek")
 def seek(sid, data):
     sio.emit("seek",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['playing']=False
+    check_interval(data['unique_id'],sid)
 
 @sio.on("forceChangeUrl")
 def forceChangeUrl(sid, data):
     sio.emit("forceChangeUrl",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['url']=data['new_url']
     pause(sid,data)
+    check_interval(data['unique_id'],sid)
     
-
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
@@ -88,10 +93,6 @@ def connect(sid, environ):
             sio.emit("pause",{"time":time.time()+DEFAULT_TOLERANCE+0.4},room=sid)
     calculate_latency(unique_id,sid)
 
-
-            
-
-
 @sio.on("disconnect")
 def disconnect(sid):
     unique_id=""
@@ -107,10 +108,8 @@ def disconnect(sid):
         user_list.pop(user_list.index(sid))
         del(users[unique_id])
     
-
 @app.route("/create_session",methods=['POST'])
 def create_session():
-
     try:
         sessionID=request.form.get("sessionID")
         uniqueID=request.form.get("uniqueID")
@@ -121,7 +120,7 @@ def create_session():
             return Response("SessionID already in use", status=400)
         else:
             sessions[sessionID]={"users":[],"url":url,"playing":playing=="true","serverTime":currentTime,"latency":DEFAULT_TOLERANCE}
-            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None,"latency":[]}
+            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None,"latency":[],"last_latency_check":None}
             return Response("Session created succesfully",status=200)
     except Exception as e:
         print(e)
