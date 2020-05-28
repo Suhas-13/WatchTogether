@@ -39,6 +39,7 @@ class SocketObject {
       });
       
       this.sock.on('pause', (data) => {
+        this.sock.emit("timeUpdate",{SESSID:this.sess_token,unique_id:this.unique_token,currentTime:this.video.currentTime});
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
           console.log("received pause");
@@ -113,7 +114,7 @@ class SocketObject {
         else {
           if (!ignoreNextPause) {
             jQuery('video').trigger("play",[true]);
-            this.sock.emit("pause",{SESSID:this.sess_token,unique_id:this.unique_token});
+            this.sock.emit("pause",{SESSID:this.sess_token,unique_id:this.unique_token,currentTime:this.video.currentTime});
           }
           else {
             ignoreNextPause=false;

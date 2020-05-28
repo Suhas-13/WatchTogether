@@ -48,21 +48,27 @@ def play(sid, data):
 def pause(sid, data):
     sio.emit("pause",{"time":time.time()+sessions[data['SESSID']]['latency']},room=data['SESSID'])
     sessions[data['SESSID']]['playing']=False
+    sessions[data['SESSID']]['serverTime']=data['currentTime']
     check_interval(data['unique_id'],sid)
     
 @sio.on("seek")
 def seek(sid, data):
     sio.emit("seek",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['playing']=False
+    sessions[data['SESSID']]['serverTime']=data['time']
     check_interval(data['unique_id'],sid)
 
 @sio.on("forceChangeUrl")
 def forceChangeUrl(sid, data):
     sio.emit("forceChangeUrl",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_url":data['new_url']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['url']=data['new_url']
+    sessions[data['SESSID']]['serverTime']=0
     pause(sid,data)
     check_interval(data['unique_id'],sid)
-    
+@sio.on("timeUpdate")
+def timeUpdate(sid,data):
+    sessions[data['SESSID']]['serverTime']=data['currentTime']
+    users[data['unique_id']]['currentTime']=data['currentTime']
 @sio.on("connect")
 def connect(sid, environ):
     query_string=unquote(environ["QUERY_STRING"])
@@ -83,6 +89,7 @@ def connect(sid, environ):
             sessions[sessionID]['users'].append(sid)
         sio.enter_room(sid,sessionID)
         sio.emit("pause",{"time":time.time()+DEFAULT_TOLERANCE})
+        time.sleep(DEFAULT_TOLERANCE*2)
         users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
         if (sessions[sessionID]['playing']):
             sio.emit("seek",{"time":time.time()+DEFAULT_TOLERANCE,"new_time":sessions[sessionID]['serverTime']},room=sid)
