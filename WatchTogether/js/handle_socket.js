@@ -1,10 +1,16 @@
 class SocketObject {
-    constructor(video, sess_token, unique_token) {
+    constructor(video, sess_token, unique_token,urlChange) {
        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token});   
        this.video=video;
        this.sess_token=sess_token;
        this.unique_token=unique_token;
        this.seekable=true;  
+       if (urlChange==true) {
+         this.urlChange=true;
+       }
+       else {
+         this.urlChange=false;
+       }
     }
 
     startSession() {
@@ -21,7 +27,6 @@ class SocketObject {
         setTimeout((data) => {
           jQuery('video').trigger("play",[true]);
           console.log("received play");
-          //this.setPlay(true);
         },(data['time']-(new Date()/1000))*1000)
         
       });
@@ -30,7 +35,6 @@ class SocketObject {
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
           console.log("received pause");
-          //this.setPause(true);
         },(data['time']-(new Date()/1000))*1000)
         
       });
@@ -68,7 +72,10 @@ class SocketObject {
         else {
           if (!ignoreNextPlay) {
             jQuery('video').trigger("pause",[true]);
-            this.sock.emit("play",{SESSID:this.sess_token});
+            if (this.urlChange) {
+              this.urlChange=false
+              this.sock.emit("play",{SESSID:this.sess_token});
+            }
           }
           else {
             ignoreNextPlay=false;

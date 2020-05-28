@@ -44,7 +44,13 @@ chrome.runtime.onMessage.addListener(
                     body: formData,
                     mode: 'no-cors'
                   })
-                 s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+                 if (request.sendPause==true) {
+                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],true);
+                 }
+                 else {
+                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+                 }
+                 
                  s.startSession();
                  s.sock.emit("pause",{SESSID:sess_token})
         }
