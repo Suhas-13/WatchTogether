@@ -41,7 +41,6 @@ class SocketObject {
       
       this.sock.on('pause', (data) => {
         console.log(data['time']-(Date.now()/1000));
-        this.sock.emit("timeUpdate",{SESSID:this.sess_token,unique_id:this.unique_token,currentTime:this.video.currentTime});
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
           console.log("received pause");

@@ -36,11 +36,9 @@ app.post('/create_session', (req, res) => {
     let username=req.body.username;
     let sessionID=req.body.sessionID;
     if (sessionID.length == 0 || (sessionID in sessions)==false) {
-        console.log("400");
         res.sendStatus(400);
     }
     else {
-        console.log("200");
         users[uniqueID]={"sessionID":sessionID,"socketID":undefined,"currentTime":undefined,"latency":[],"last_latency_check":undefined}
         res.sendStatus(200);
     }
@@ -61,7 +59,6 @@ const io = require('socket.io')(server, {
     let autoPlay=socket.handshake.query.dontPlay;
 
     
-
     if (unique_id!=undefined && sid != undefined && unique_id in users) {
         if (!(unique_id in users)) {
             users[unique_id]={"socketID":undefined,"sessionID":undefined,"currentTime":undefined}
@@ -72,18 +69,19 @@ const io = require('socket.io')(server, {
         socket.join(sessionID);
         io.emit("pause",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE});
         setTimeout(()=>{
-            users[unique_id]['currentTime']=sessions[sessionID]['serverTime']
+            users[unique_id]['currentTime']=sessions[sessionID]['serverTime'];
+            console.log("seeking at " + sessions[sessionID]['serverTime']);
             if (sessions[sessionID]['playing']) {
                 socket.emit("seek",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE,"new_time":sessions[sessionID]['serverTime']})
+                console.log("seeking at " + sessions[sessionID]['serverTime']);
                 if (autoPlay) {
                     socket.emit("play",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE+0.4})
                 }
                 else {
-                    socket.emit("seek",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE,"new_time":sessions[sessionID]['serverTime']})
-                    socket.emit("pause",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE+0.4})
+                    socket.emit("pause",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE+0.4});
                 }
             }
-        },DEFAULT_TOLERANCE*2);
+        },DEFAULT_TOLERANCE*1000);
         calculate_latency(unique_id,sid);
     }
     function calculate_latency(unique_id,sid) {
@@ -165,7 +163,9 @@ const io = require('socket.io')(server, {
     socket.on('pause', (data) => {
         io.to(data["SESSID"]).emit("pause",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
         sessions[data['SESSID']]['playing']=false;
-        sessions[data['SESSID']]['serverTime']=data['currentTime'];
+        if (data['countTime']) {
+            sessions[data['SESSID']]['serverTime']=data['currentTime'];
+        }
         check_interval(data['unique_id'],socket.id);
     })
 
