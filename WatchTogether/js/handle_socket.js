@@ -1,10 +1,10 @@
 class SocketObject {
     constructor(video, sess_token, unique_token,urlChange) {
       if (urlChange==2) {
-        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token+"&dontPlay"+":True"});   
+        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token,dontPlay:true});   
       }
       else {
-        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token+"&dontPlay"+":False"});   
+        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token,dontPlay:false});   
       }
        
        this.video=video;
@@ -34,7 +34,7 @@ class SocketObject {
         setTimeout((data) => {
           jQuery('video').trigger("play",[true]);
           console.log("received play");
-        },(data['time']-(new Date()/1000))*1000)
+        },(data['time']-(new Date())*1000))
         
       });
       
@@ -43,7 +43,7 @@ class SocketObject {
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
           console.log("received pause");
-        },(data['time']-(new Date()/1000))*1000)
+        },(data['time']-(Date.now()/1000)))
         
       });
       
@@ -51,10 +51,10 @@ class SocketObject {
         setTimeout(() => {
           seek_callback_false();
           this.video.currentTime=data['new_time'];
-        },(data['time']-(new Date()/1000))*1000)
+        },(data['time']-(Date.now()/1000)))
         setTimeout(() => {
           jQuery("video").trigger("pause",[true])
-        },(data['time']+0.2-(new Date()/1000))*1000)
+        },(data['time']-(Date.now()/1000)))
         
         
       });
@@ -64,12 +64,12 @@ class SocketObject {
         chrome.runtime.sendMessage({intent: "disableChangingUrl"}, function(response) {
           setTimeout(() => {
             document.location.href=data['new_url'];
-          },(data['time']-(new Date()/1000))*1000+1.5)
+          },(data['time']-(Date.now()/1000)))
         });
       });
 
       this.sock.on('latency_check', (data) => {
-        let latency_val=(new Date().getTime()/1000)-data['time']
+        let latency_val=(Date.now()/1000)-data['time']
         console.log(latency_val);
         this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,latency:latency_val});
       });

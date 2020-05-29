@@ -1,3 +1,4 @@
+
 let s;
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -18,17 +19,12 @@ chrome.runtime.onMessage.addListener(
 
         if (request.intent=="create") {
                 video=document.getElementsByTagName("video")[0];
-                let formData = new FormData();
-                formData.append('uniqueID', result['token']);
-                formData.append("username","test");
-                formData.append("url",document.location.href);
-                formData.append("currentTime",(video.currentTime));
-                formData.append("playing",(!video.paused));
-                formData.append("sessionID",request["value"]);
                 fetch('https://192.168.86.36/create_session', {
                     method: "post",
-                    body: formData,
-                    mode: 'no-cors'
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({"uniqueID":result['token'],"username":"test","url":document.location.href,"currentTime":video.currentTime,"playing":!video.paused,"sessionID":request['value']})
                   }).then((res)=> {
                     s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
                     s.startSession();
@@ -36,14 +32,12 @@ chrome.runtime.onMessage.addListener(
           }
         else if (request.intent=="join") {
                 video=document.getElementsByTagName("video")[0];
-                let formData = new FormData();
-                formData.append('uniqueID', result['token']);
-                formData.append("username","test");
-                formData.append("sessionID",request["value"]);
                 fetch('https://192.168.86.36/join_session', {
                     method: "post",
-                    body: formData,
-                    mode: 'no-cors'
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: {"uniqueID":result['token'],"username":"test","sessionID":request['value']}
                   }).then((res) => {
                     if (request.sendPause==true) {
                       s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],1);
@@ -60,14 +54,12 @@ chrome.runtime.onMessage.addListener(
         else if (request.intent=="changeUrl") {
           chrome.storage.local.set({'sess_url': document.location.href});
           video=document.getElementsByTagName("video")[0];
-          let formData = new FormData();
-          formData.append('uniqueID', result['token']);
-          formData.append("username","test");
-          formData.append("sessionID",request["value"]);
           fetch('https://192.168.86.36/join_session', {
               method: "post",
-              body: formData,
-              mode: 'no-cors'
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: {"uniqueID":result['token'],"username":"test","sessionID":result['value']},
             }).then((res)=> {
               s=new SocketObject(video,sess_token,result['token'],2);
               s.startSession();

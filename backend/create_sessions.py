@@ -20,7 +20,7 @@ sio = socketio.Server(logger=True,cors_allowed_origins='*',async_mode='threading
 app = Flask(__name__)
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
 def check_interval(unique_id,sid):
-    if users[unique_id]['last_latency_check'] is None or users[unique_id]['last_latency_check']:
+    if users[unique_id]['last_latency_check'] is None or time.time()-users[unique_id]['last_latency_check']>=MAX_INTERVAL:
         calculate_latency(unique_id,sid)
 @sio.on("latency_check")
 def latency_check(sid, data):
@@ -32,6 +32,7 @@ def latency_check(sid, data):
         current_latency=sum(pings)/len(pings)
         current_server_latency=sessions[data['SESSID']]['latency']
         sessions[data['SESSID']]['latency']=max(current_server_latency,current_latency)
+
 def calculate_latency(unique_id,sid):
     users[unique_id]['latency']=[]
     users[unique_id]['last_latency_check']=time.time()
