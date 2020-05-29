@@ -27,6 +27,7 @@ def latency_check(sid, data):
     unique_id=data['unique_id']
     users[unique_id]['latency'].append(min(MAX_LATENCY,data['latency']))
     pings=(users[unique_id]['latency'])
+    ping_count=len(pings)
     if ping_count>=MAX_PINGS:
         current_latency=sum(pings)/len(pings)
         current_server_latency=sessions[data['SESSID']]['latency']
@@ -53,9 +54,9 @@ def pause(sid, data):
     
 @sio.on("seek")
 def seek(sid, data):
-    sio.emit("seek",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_time":data['time']},room=data['SESSID'],skip_sid=sid)
+    sio.emit("seek",{"time":time.time()+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']},room=data['SESSID'],skip_sid=sid)
     sessions[data['SESSID']]['playing']=False
-    sessions[data['SESSID']]['serverTime']=data['time']
+    sessions[data['SESSID']]['serverTime']=data['currentTime']
     check_interval(data['unique_id'],sid)
 
 @sio.on("forceChangeUrl")

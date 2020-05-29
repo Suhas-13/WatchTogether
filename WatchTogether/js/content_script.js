@@ -29,10 +29,11 @@ chrome.runtime.onMessage.addListener(
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
-                  });
-                 s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
-                 s.startSession();
-            }
+                  }).then((res)=> {
+                    s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+                    s.startSession();
+                  })
+          }
         else if (request.intent=="join") {
                 video=document.getElementsByTagName("video")[0];
                 let formData = new FormData();
@@ -43,17 +44,19 @@ chrome.runtime.onMessage.addListener(
                     method: "post",
                     body: formData,
                     mode: 'no-cors'
-                  })
-                 if (request.sendPause==true) {
-                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],1);
-                 }
-                 else {
-                  s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
-                 }
-                 
-                 s.startSession();
-                 s.sock.emit("pause",{SESSID:sess_token})
+                  }).then((res) => {
+                    if (request.sendPause==true) {
+                      s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],1);
+                     }
+                     else {
+                      s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
+                     }
+                     s.startSession();
+                     s.sock.emit("pause",{SESSID:sess_token})
+            })
         }
+                
+        
         else if (request.intent=="changeUrl") {
           chrome.storage.local.set({'sess_url': document.location.href});
           video=document.getElementsByTagName("video")[0];
@@ -65,13 +68,13 @@ chrome.runtime.onMessage.addListener(
               method: "post",
               body: formData,
               mode: 'no-cors'
-            })
-            s=new SocketObject(video,sess_token,result['token'],2);
-            s.startSession();
-            s.forceChangeUrl(document.location.href);
+            }).then((res)=> {
+              s=new SocketObject(video,sess_token,result['token'],2);
+              s.startSession();
+              s.forceChangeUrl(document.location.href);
+            }) 
         }
-    return true;
-        
+      return true; 
     });
   });
 
