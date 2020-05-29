@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener(
                     headers: {
                       'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({"uniqueID":result['token'],"username":"test","url":document.location.href,"currentTime":video.currentTime,"playing":!video.paused,"sessionID":request['value']})
+                    body: {"uniqueID":result['token'],"username":"test","url":document.location.href,"currentTime":video.currentTime,"playing":!video.paused,"sessionID":request['value']}
                   }).then((res)=> {
                     s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token']);
                     s.startSession();
@@ -38,7 +38,7 @@ chrome.runtime.onMessage.addListener(
                     headers: {
                       'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({"uniqueID":result['token'],"username":"test","sessionID":request['value']})
+                    body: {"uniqueID":result['token'],"username":"test","sessionID":request['value']}
                   }).then((res) => {
                     if (request.sendPause==true) {
                       s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],1);

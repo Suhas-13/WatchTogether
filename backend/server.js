@@ -167,6 +167,7 @@ const io = require('socket.io')(server, {
         check_interval(data['unique_id'],socket.id);
     })
     socket.on('pause', (data) => {
+        console.log(sessions[data['SESSID']]['latency']);
         io.to(data["SESSID"]).emit("pause",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
         sessions[data['SESSID']]['playing']=false;
         sessions[data['SESSID']]['serverTime']=data['currentTime'];
