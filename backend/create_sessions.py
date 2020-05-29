@@ -143,7 +143,7 @@ def join_session():
         if len(sessionID) == 0  or sessionID not in sessions:
             return Response("Failed to join session", status=400)
         else:
-            users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None}
+             users[uniqueID]={"sessionID":sessionID,"socketID":None,"currentTime":None,"latency":[],"last_latency_check":None}
             return Response("Session joined succesfully", status=200)
     except Exception as e:
         print(e)

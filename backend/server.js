@@ -37,10 +37,12 @@ app.post('/create_session', (req, res) => {
     let username=req.body.username;
     let sessionID=req.body.sessionID;
     if (sessionID.length == 0 || (sessionID in sessions)==false) {
+        console.log("400");
         res.sendStatus(400);
     }
     else {
-        users[uniqueID]={"sessionID":sessionID,"socketID":undefined,"currentTime":undefined}
+        console.log("200");
+        users[uniqueID]={"sessionID":sessionID,"socketID":undefined,"currentTime":undefined,"latency":[],"last_latency_check":undefined}
         res.sendStatus(200);
     }
   });
@@ -105,7 +107,7 @@ const io = require('socket.io')(server, {
     }
     function pause(data,sid) {
         if (data['SESSID']!=undefined && data['SESSID'] in sessions) {
-            io.in(data['SESSID']).emit("pause",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
+            io.to(data['SESSID']).emit("pause",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
             sessions[data['SESSID']]['playing']=false;
             sessions[data['SESSID']]['serverTime']=data['currentTime'];
             check_interval(data['unique_id'],sid)
@@ -128,7 +130,7 @@ const io = require('socket.io')(server, {
         }
     })
     socket.on('play', (data) => {
-        io.in(data['SESSID']).emit("play",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
+        io.to(data['SESSID']).emit("play",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
         sessions[data['SESSID']]['playing']=true;
         check_interval(data['unique_id'],socket.id)
     });

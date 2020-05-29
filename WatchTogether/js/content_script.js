@@ -1,3 +1,4 @@
+import { json } from "body-parser";
 
 let s;
 chrome.runtime.onMessage.addListener(
@@ -37,7 +38,7 @@ chrome.runtime.onMessage.addListener(
                     headers: {
                       'Content-Type': 'application/json'
                     },
-                    body: {"uniqueID":result['token'],"username":"test","sessionID":request['value']}
+                    body: JSON.stringify({"uniqueID":result['token'],"username":"test","sessionID":request['value']})
                   }).then((res) => {
                     if (request.sendPause==true) {
                       s=new SocketObject(document.getElementsByTagName("video")[0],sess_token,result['token'],1);
