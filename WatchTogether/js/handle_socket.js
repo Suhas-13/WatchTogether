@@ -31,30 +31,33 @@ class SocketObject {
         console.log("setting seek off")
       }
       this.sock.on('play', (data) => {
+        console.log(data['time']-(Date.now()/1000));
         setTimeout((data) => {
           jQuery('video').trigger("play",[true]);
           console.log("received play");
-        },(data['time']-(new Date())*1000))
+        },(data['time']-(new Date())/1000)*1000)
         
       });
       
       this.sock.on('pause', (data) => {
+        console.log(data['time']-(Date.now()/1000));
         this.sock.emit("timeUpdate",{SESSID:this.sess_token,unique_id:this.unique_token,currentTime:this.video.currentTime});
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
           console.log("received pause");
-        },(data['time']-(Date.now()/1000)))
+        },(data['time']-(new Date())/1000)*1000)
         
       });
       
       this.sock.on('seek', (data) => {
+        console.log(data['time']-(Date.now()/1000));
         setTimeout(() => {
           seek_callback_false();
           this.video.currentTime=data['new_time'];
         },(data['time']-(Date.now()/1000)))
         setTimeout(() => {
           jQuery("video").trigger("pause",[true])
-        },(data['time']-(Date.now()/1000)))
+        },(data['time']-(new Date())/1000)*1000)
         
         
       });
@@ -64,7 +67,7 @@ class SocketObject {
         chrome.runtime.sendMessage({intent: "disableChangingUrl"}, function(response) {
           setTimeout(() => {
             document.location.href=data['new_url'];
-          },(data['time']-(Date.now()/1000)))
+          },(data['time']-(new Date())/1000)*1000)
         });
       });
 
