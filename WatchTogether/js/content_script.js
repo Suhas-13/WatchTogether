@@ -1,4 +1,3 @@
-import { json } from "body-parser";
 
 let s;
 chrome.runtime.onMessage.addListener(
