@@ -1,7 +1,7 @@
 
 function onDisconnect() {
     document.getElementById("disconnect").style.display="none";
-    ocument.getElementById("saveForm").style.display="block";
+    document.getElementById("saveForm").style.display="block";
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         chrome.tabs.sendMessage(tabs[0].id, {intent:"destroy"}, function(response) {
         chrome.storage.local.set({'sess_token': ""});

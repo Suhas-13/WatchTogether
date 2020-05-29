@@ -61,7 +61,7 @@ const io = require('socket.io')(server, {
 
     
 
-    if (unique_id!=undefined && sid != undefined) {
+    if (unique_id!=undefined && sid != undefined && unique_id in users) {
         if (!(unique_id in users)) {
             users[unique_id]={"socketID":undefined,"sessionID":undefined,"currentTime":undefined}
         }
@@ -143,8 +143,11 @@ const io = require('socket.io')(server, {
     });
 
     socket.on('timeUpdate', (data) => {
-        sessions[data['SESSID']]['serverTime']=data['currentTime'];
-        users[data['unique_id']]['currentTime']=data['currentTime'];
+        if (data['unique_id'] in users) {
+            sessions[data['SESSID']]['serverTime']=data['currentTime'];
+            users[data['unique_id']]['currentTime']=data['currentTime'];
+        }
+        
     });
     socket.on('forceChangeUrl', (data) => {
         sessions[data['SESSID']]['serverTime']=data['currentTime'];
@@ -170,3 +173,21 @@ const io = require('socket.io')(server, {
 
 
   });
+  io.on('disconnect', (socket) => {
+      let unique_id=""
+      for (let i=0; i<users.length; i++) {
+        if (users[i]['socketID']==sid) {
+            unique_id=i;
+            break;
+        }
+    }
+    if (unique_id!="") {
+        sessionID=users[unique_id]['sessionID'];
+        socket.leave(sessionID);
+        user_list=sessions[sessionID]['users'];
+        user_list.splice(user_list.findIndex(sid));
+        delete(users[unique_id]);
+    }
+        
+    })
+            
