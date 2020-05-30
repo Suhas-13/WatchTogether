@@ -1,10 +1,10 @@
 class SocketObject {
     constructor(video, sess_token, unique_token,urlChange) {
       if (urlChange==2) {
-        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token,dontPlay:true});   
+        this.sock =io(URL,{query:"id="+unique_token,dontPlay:true});   
       }
       else {
-        this.sock =io("https://192.168.86.36/",{query:"id="+unique_token,dontPlay:false});   
+        this.sock =io(URL,{query:"id="+unique_token,dontPlay:false});   
       }
        
        this.video=video;

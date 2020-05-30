@@ -1,4 +1,4 @@
-
+const URL ="https://watch-together-extension.herokuapp.com/"
 let s;
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener(
 
         if (request.intent=="create") {
                 video=document.getElementsByTagName("video")[0];
-                fetch('https://192.168.86.36/create_session', {
+                fetch(URL+"create_session", {
                     method: "post",
                     headers: {
                       'Content-Type': 'application/json'
@@ -32,7 +32,7 @@ chrome.runtime.onMessage.addListener(
           }
         else if (request.intent=="join") {
                 video=document.getElementsByTagName("video")[0];
-                fetch('https://192.168.86.36/join_session', {
+                fetch(URL+'join_session', {
                     method: "post",
                     headers: {
                       'Content-Type': 'application/json'
@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener(
         else if (request.intent=="changeUrl") {
           chrome.storage.local.set({'sess_url': document.location.href});
           video=document.getElementsByTagName("video")[0];
-          fetch('https://192.168.86.36/join_session', {
+          fetch(URL+'join_session', {
               method: "post",
               headers: {
                 'Content-Type': 'application/json'

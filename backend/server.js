@@ -1,4 +1,4 @@
-const https = require('https');
+const http = require('http');
 const fs = require('fs');
 var express = require('express');
 var app = express();
@@ -12,10 +12,7 @@ const MAX_INTERVAL=15000
 const MAX_PING_WAIT=5000
 var bodyParser = require('body-parser');
 app.use(express.json());
-const options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem')
-};
+
 app.post('/create_session', (req, res) => {
     let uniqueID=req.body.uniqueID;
     let username=req.body.username;
@@ -46,7 +43,7 @@ app.post('/create_session', (req, res) => {
   });
 
   
-const server=https.createServer(options,app).listen(443);
+const server=http.createServer(app).listen(process.env.PORT || 80);
 const io = require('socket.io')(server, {
     path: '/socket.io',
     serveClient: false,
