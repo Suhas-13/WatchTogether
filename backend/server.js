@@ -49,7 +49,7 @@ const server=https.createServer(options,app).listen(443);
 const io = require('socket.io')(server, {
     path: '/socket.io',
     serveClient: false,
-    pingInterval: 5,
+    pingInterval: 1000,
     pingTimeout: 5000
   });
   io.on('connection', (socket) => {
