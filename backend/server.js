@@ -5,7 +5,7 @@ var app = express();
 
 let sessions={};
 let users={};
-const DEFAULT_TOLERANCE=1
+const DEFAULT_TOLERANCE=0.7
 const MAX_LATENCY=10
 const MAX_PINGS=10
 const MAX_INTERVAL=300
@@ -67,10 +67,9 @@ const io = require('socket.io')(server, {
         sessionID=users[unique_id]['sessionID']
         sessions[sessionID]['users'].push(socket.id)
         socket.join(sessionID);
-        io.emit("pause",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE});
+        io.to(sessionID).emit("pause",{"time":(Date.now()/1000)+sessions[sessionID]['latency']});
         setTimeout(()=>{
             users[unique_id]['currentTime']=sessions[sessionID]['serverTime'];
-            console.log("seeking at " + sessions[sessionID]['serverTime']);
             socket.emit("seek",{"time":(Date.now()/1000)+DEFAULT_TOLERANCE,"new_time":sessions[sessionID]['serverTime']})
             if (sessions[sessionID]['playing']) {
                 if (autoPlay) {
@@ -87,6 +86,7 @@ const io = require('socket.io')(server, {
         users[unique_id]['latency']=[]
         users[unique_id]['last_latency_check']=(Date.now()/1000);
         for (let i=0; i<MAX_PINGS; i++) {
+            console.log(Date.now()/1000);
             socket.emit("latency_check",{"time":(Date.now()/1000)});
         }  
     }
@@ -102,14 +102,12 @@ const io = require('socket.io')(server, {
         
     }
     function pause(data,sid) {
-        if (data['SESSID']!=undefined && data['SESSID'] in sessions) {
-            io.to(data['SESSID']).emit("pause",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
-            sessions[data['SESSID']]['playing']=false;
-            if (data['currentTime']!=undefined) {
-                sessions[data['SESSID']]['serverTime']=data['new_time'];
-            }
-            check_interval(data['unique_id'],sid)
+        io.to(data['SESSID']).emit("pause",{"time":(Date.now()/1000)+sessions[data['SESSID']]['latency']});
+        sessions[data['SESSID']]['playing']=false;
+        if (data['currentTime']!=undefined) {
+            sessions[data['SESSID']]['serverTime']=data['new_time'];
         }
+        check_interval(data['unique_id'],sid)
     }
 
     socket.on('latency_check', (data) => {
@@ -120,6 +118,7 @@ const io = require('socket.io')(server, {
         if (ping_count>=MAX_PINGS) {
             const sum = pings.reduce((a, b) => a + b, 0);
             const current_latency = (sum / ping_count) || 0;
+            
             let current_server_latency=sessions[data['SESSID']]['latency']
             sessions[data['SESSID']]['latency']=Math.max(current_server_latency,current_latency)
         }
@@ -171,7 +170,6 @@ const io = require('socket.io')(server, {
         if (data['currentTime']!=undefined) {
             sessions[data['SESSID']]['serverTime']=data['currentTime'];
         }
-        
         
         check_interval(data['unique_id'],socket.id);
     })
