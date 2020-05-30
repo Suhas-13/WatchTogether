@@ -68,9 +68,7 @@ class SocketObject {
       });
 
       this.sock.on('latency_check', (data) => {
-        console.log((Date.now())+"-" + data['time'])
-        let latency_val=(Date.now())-data['time']
-        this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,latency:latency_val});
+        this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,time:data['time']});
       });
       
       let ignoreNextPlay=false;

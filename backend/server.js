@@ -49,9 +49,8 @@ const server=https.createServer(options,app).listen(443);
 const io = require('socket.io')(server, {
     path: '/socket.io',
     serveClient: false,
-    pingInterval: 10000,
-    pingTimeout: 5000,
-    cookie: false
+    pingInterval: 1000,
+    pingTimeout: 5000
   });
   io.on('connection', (socket) => {
     let unique_id=socket.handshake.query.id;
@@ -86,9 +85,7 @@ const io = require('socket.io')(server, {
         users[unique_id]['latency']=[]
         users[unique_id]['last_latency_check']=(Date.now());
         for (let i=0; i<MAX_PINGS; i++) {
-            let time=(Date.now());
-            console.log(time);
-            socket.emit("latency_check",{"time":(time)});
+            socket.emit("latency_check",{"time":(Date.now())});
         }  
     }
     function check_interval(unique_id,sid) {
@@ -110,10 +107,15 @@ const io = require('socket.io')(server, {
         }
         check_interval(data['unique_id'],sid)
     }
+    socket.on('pong', function(ms) {
+
+    
+        console.log(ms);
+    });
 
     socket.on('latency_check', (data) => {
         let unique_id=data['unique_id'];
-        users[unique_id]['latency'].push(Math.min(MAX_LATENCY,data['latency']))
+        users[unique_id]['latency'].push(Math.min(MAX_LATENCY,(Date.now()-data['time'])/2))
         let pings=(users[unique_id]['latency'])
         let ping_count=pings.length;
         if (ping_count>=MAX_PINGS) {
