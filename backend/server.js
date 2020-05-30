@@ -49,7 +49,7 @@ const server=https.createServer(options,app).listen(443);
 const io = require('socket.io')(server, {
     path: '/socket.io',
     serveClient: false,
-    pingInterval: 1000,
+    pingInterval: 5,
     pingTimeout: 5000
   });
   io.on('connection', (socket) => {
@@ -107,23 +107,20 @@ const io = require('socket.io')(server, {
         }
         check_interval(data['unique_id'],sid)
     }
-    socket.on('pong', function(ms) {
 
-    
-        console.log(ms);
-    });
 
     socket.on('latency_check', (data) => {
         let unique_id=data['unique_id'];
-        users[unique_id]['latency'].push(Math.min(MAX_LATENCY,(Date.now()-data['time'])/2))
+        let latency=(Date.now()-data['time'])/2;
+        console.log(latency);
+        users[unique_id]['latency'].push(latency);
         let pings=(users[unique_id]['latency'])
         let ping_count=pings.length;
         if (ping_count>=MAX_PINGS) {
             const sum = pings.reduce((a, b) => a + b, 0);
             const current_latency = (sum / ping_count) || 0;
-            
             let current_server_latency=sessions[data['SESSID']]['latency']
-            sessions[data['SESSID']]['latency']=Math.max(current_server_latency,current_latency)
+            sessions[data['SESSID']]['latency']=Math.max(current_server_latency,Math.min(DEFAULT_LATENCY,current_latency));
         }
     })
     socket.on('play', (data) => {
