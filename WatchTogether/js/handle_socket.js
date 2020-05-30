@@ -68,11 +68,10 @@ class SocketObject {
       });
 
       this.sock.on('latency_check', (data) => {
+        console.log(data['time']);
         this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,time:data['time']});
       });
-      this.sock.on('pong', (ms) => {
-        console.log(ms + " this is the ms");
-      });
+      
       
       let ignoreNextPlay=false;
       let ignoreNextPause=false;
