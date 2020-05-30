@@ -47,7 +47,7 @@ const server=http.createServer(app).listen(process.env.PORT || 80);
 const io = require('socket.io')(server, {
     path: '/socket.io',
     serveClient: false,
-    pingInterval: 100,
+    pingInterval: 10000,
     pingTimeout: 5000
   });
   io.on('connection', (socket) => {
@@ -107,69 +107,86 @@ const io = require('socket.io')(server, {
         
     }
     function pause(data,sid) {
-        io.to(data['SESSID']).emit("pause",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
-        sessions[data['SESSID']]['playing']=false;
-        if (data['currentTime']!=undefined) {
-            sessions[data['SESSID']]['serverTime']=data['new_time'];
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
+            io.to(data['SESSID']).emit("pause",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
+            sessions[data['SESSID']]['playing']=false;
+            if (data['currentTime']!=undefined) {
+                sessions[data['SESSID']]['serverTime']=data['new_time'];
+            }
+            check_interval(data['SESSID']);
         }
-        check_interval(data['SESSID']);
     }
 
     
     socket.on('latency_check', (data) => {
-        let unique_id=data['unique_id'];
-        let latency=(Date.now()-data['time'])/2;
-        users[unique_id]['latency'].push(latency);
+
+        if (data['SESSID'] in sessions && data['unique_id'] in users){
+            let unique_id=data['unique_id'];
+            let latency=(Date.now()-data['time'])/2;
+            users[unique_id]['latency'].push(latency);
+        }
+        
     })
     socket.on('play', (data) => {
-        io.to(data['SESSID']).emit("play",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
-        sessions[data['SESSID']]['playing']=true;
-        check_interval(data['SESSID']);
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
+            io.to(data['SESSID']).emit("play",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
+            sessions[data['SESSID']]['playing']=true;
+            check_interval(data['SESSID']);
+        }
+        
     });
     socket.on('pause', (data) => {
         pause(data,socket.id);
     });
     socket.on('seek', (data) => {
-        socket.broadcast.to(data['SESSID']).emit("seek",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']});
-        sessions[data['SESSID']]['playing']=false;
-        if (data['currentTime']!=undefined) {
-            sessions[data['SESSID']]['serverTime']=data['currentTime'];
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
+            socket.broadcast.to(data['SESSID']).emit("seek",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']});
+            sessions[data['SESSID']]['playing']=false;
+            if (data['currentTime']!=undefined) {
+                sessions[data['SESSID']]['serverTime']=data['currentTime'];
+            }
+            check_interval(data['SESSID']);
         }
-        check_interval(data['SESSID']);
     });
 
     socket.on('timeUpdate', (data) => {
-        if (data['unique_id'] in users) {
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
             sessions[data['SESSID']]['serverTime']=data['currentTime'];
             users[data['unique_id']]['currentTime']=data['currentTime'];
         }
         
     });
     socket.on('forceChangeUrl', (data) => {
-        sessions[data['SESSID']]['serverTime']=data['currentTime'];
-        users[data['unique_id']]['currentTime']=data['currentTime'];
-        socket.broadcast.to(data['SESSID']).emit("forceChangeUrl",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_url":data['new_url']});
-        sessions[data['SESSID']]['url']=data['new_url']
-        sessions[data['SESSID']]['serverTime']=0
-        pause(sid,data)
-        check_interval(data['SESSID']);
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
+            sessions[data['SESSID']]['serverTime']=data['currentTime'];
+            users[data['unique_id']]['currentTime']=data['currentTime'];
+            socket.broadcast.to(data['SESSID']).emit("forceChangeUrl",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_url":data['new_url']});
+            sessions[data['SESSID']]['url']=data['new_url']
+            sessions[data['SESSID']]['serverTime']=0
+            pause(sid,data)
+            check_interval(data['SESSID']);
+        }
     });
     socket.on('seek', (data) => {
-        socket.broadcast.to(data['SESSID']).emit("seek",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']});
-        sessions[data['SESSID']]['playing']=false;
-        if (data['currentTime']!=undefined) {
-            sessions[data['SESSID']]['serverTime']=data['currentTime'];
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
+            socket.broadcast.to(data['SESSID']).emit("seek",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']});
+            sessions[data['SESSID']]['playing']=false;
+            if (data['currentTime']!=undefined) {
+                sessions[data['SESSID']]['serverTime']=data['currentTime'];
+            }
+            check_interval(data['SESSID']);
         }
-        check_interval(data['SESSID']);
     })
     socket.on('pause', (data) => {
-        io.to(data["SESSID"]).emit("pause",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
-        sessions[data['SESSID']]['playing']=false;
-        if (data['currentTime']!=undefined) {
-            sessions[data['SESSID']]['serverTime']=data['currentTime'];
+        if (data['SESSID'] in sessions && data['unique_id'] in users) {
+            io.to(data["SESSID"]).emit("pause",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
+            sessions[data['SESSID']]['playing']=false;
+            if (data['currentTime']!=undefined) {
+                sessions[data['SESSID']]['serverTime']=data['currentTime'];
+            }
+            
+            check_interval(data['SESSID']);
         }
-        
-        check_interval(data['SESSID']);
     })
 
 
@@ -190,8 +207,4 @@ const io = require('socket.io')(server, {
         delete(users[unique_id]);
     }
         
-    })
-
-    io.on('ping',(ms)=> {
-        console.log(ms+"is ping ");
     })
