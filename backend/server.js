@@ -86,8 +86,9 @@ const io = require('socket.io')(server, {
         users[unique_id]['latency']=[]
         users[unique_id]['last_latency_check']=(Date.now()/1000);
         for (let i=0; i<MAX_PINGS; i++) {
-            console.log(Date.now()/1000);
-            socket.emit("latency_check",{"time":(Date.now()/1000)});
+            let time=(Date.now());
+            console.log(time);
+            socket.emit("latency_check",{"time":(time)});
         }  
     }
     function check_interval(unique_id,sid) {
