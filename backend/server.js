@@ -33,7 +33,7 @@ app.post('/create_session', (req, res) => {
     let uniqueID=req.body.uniqueID;
     let username=req.body.username;
     let sessionID=req.body.sessionID;
-    if (sessionID.length == 0 || (sessionID in sessions)==false) {
+    if (sessionID==undefined || (sessionID in sessions)==false) {
         res.sendStatus(400);
     }
     else {
@@ -100,12 +100,10 @@ const io = require('socket.io')(server, {
                 let pings=users[user_list[i]]['latency'];
                 const sum = pings.reduce((a, b) => a + b, 0);
                 const current_latency = (sum / pings.length) || 0;
-                console.log(user_list[i] + " latency " + current_latency);
                 io.to(users[user_list[i]]['socketID']).emit("set_latency",{"latency":Math.min(current_latency,MAX_LATENCY)});
                 max_new_latency=Math.max(max_new_latency,Math.min(current_latency,MAX_LATENCY));
             }
             sessions[sessionID]['latency']=max_new_latency;
-            console.log("Server latency is "+ sessions[sessionID]['latency']);
         },MAX_PING_WAIT);
     }
     function check_interval(sessionID) {

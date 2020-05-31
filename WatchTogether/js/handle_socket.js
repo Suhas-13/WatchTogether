@@ -32,7 +32,6 @@ class SocketObject {
       this.sock.on('play', (data) => {
         setTimeout(() => {
           jQuery('video').trigger("play",[true]);
-          console.log(data['time']-this.latency);
         },data['time']-this.latency);
         
       });
