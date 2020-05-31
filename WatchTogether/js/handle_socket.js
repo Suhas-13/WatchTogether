@@ -33,7 +33,10 @@ class SocketObject {
       }
       this.sock.on('pong', (ms) => {
         this.latency_count--;
-        this.latency_values.shift();
+        if (this.latency_values.length>10) {
+          this.latency_values.shift();
+        }
+        
         this.latency_values.push(ms);
         if (this.latency_count<0) {
           this.latency_count=5;
