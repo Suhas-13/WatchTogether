@@ -33,7 +33,7 @@ class SocketObject {
       this.sock.on('pong', (ms) => {
         console.log(ms);
         this.latency_values.push(ms);
-        if (this.latency_values.length>10) {
+        if (this.latency_values.length>10 || latency==0) {
           this.latency = (this.latency_values.reduce((a, b) => a + b, 0))/this.latency_values.length;
           this.latency_values=[];
           this.sock.emit("latency_update",{SESSID:this.sess_token,unique_id:this.unique_token,latency:this.latency});
