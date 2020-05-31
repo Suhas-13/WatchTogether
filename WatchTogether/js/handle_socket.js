@@ -39,6 +39,7 @@ class SocketObject {
       this.sock.on('pause', (data) => {
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
+          this.sock.emit("timeUpdate",{SESSID:this.sess_token,unique_id:this.unique_token,currentTime:this.video.currentTime});
         },data['time']-this.latency);
         
       });
