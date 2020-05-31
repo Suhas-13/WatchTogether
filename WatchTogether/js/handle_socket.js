@@ -49,10 +49,11 @@ class SocketObject {
       this.sock.on('seek', (data) => {
         setTimeout(() => {
           seek_callback_false();
-          this.video.currentTime=data['new_time'];
+          
         },(data['time']-(Date.now())))
         setTimeout(() => {
           jQuery("video").trigger("pause",[true])
+          this.video.currentTime=data['new_time'];
         },(data['time']-Date.now()))
         
         
