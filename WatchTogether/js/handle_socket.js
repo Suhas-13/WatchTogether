@@ -13,6 +13,7 @@ class SocketObject {
        this.latency=0;
        this.latency_values=[];
        this.seekable=true;  
+       this.latency_count=0;
        if (urlChange==1) {
          this.urlChange=true;
        }
@@ -32,13 +33,14 @@ class SocketObject {
       }
       this.sock.on('pong', (ms) => {
         console.log(ms);
+        this.latency_count--;
         this.latency_values.push(ms);
-        if (this.latency_values.length>10 || this.latency==0) {
+        if (this.latency_count<0) {
+          this.latency_count=5;
           this.latency = (this.latency_values.reduce((a, b) => a + b, 0))/this.latency_values.length;
-          this.latency_values=[];
+          this.latency_values.splice(0);
           this.sock.emit("latency_update",{SESSID:this.sess_token,unique_id:this.unique_token,latency:this.latency});
         }
-        
       });
       this.sock.on('play', (data) => {
         setTimeout(() => {
