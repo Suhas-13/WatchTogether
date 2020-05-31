@@ -29,18 +29,18 @@ class SocketObject {
         this.seekable=false;
       }
       this.sock.on('play', (data) => {
-        setTimeout((data) => {
+        setTimeout(() => {
           jQuery('video').trigger("play",[true]);
-          console.log("received play");
-        },(data['time']-(Date.now())))
+          console.log("received play" + data['time']);
+        },data['time']);
         
       });
       
       this.sock.on('pause', (data) => {
         setTimeout(() => {
           jQuery('video').trigger("pause",[true]);
-          console.log("received pause");
-        },(data['time']-(Date.now())))
+          console.log("received pause" + data['time']);
+        },data['time']);
         
       });
       
@@ -48,7 +48,7 @@ class SocketObject {
         setTimeout(() => {
           seek_callback_false();
           
-        },(data['time']-(Date.now())))
+        },data['time']);
         jQuery("video").trigger("pause",[true])
         this.video.currentTime=data['new_time'];      
       });
@@ -58,12 +58,11 @@ class SocketObject {
         chrome.runtime.sendMessage({intent: "disableChangingUrl"}, function(response) {
           setTimeout(() => {
             document.location.href=data['new_url'];
-          },(data['time']-(Date.now())))
+          },data['time']);
         });
       });
 
       this.sock.on('latency_check', (data) => {
-        console.log(data['time']);
         this.sock.emit("latency_check",{SESSID:this.sess_token,unique_id:this.unique_token,time:data['time']});
       });
       

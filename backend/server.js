@@ -1,4 +1,4 @@
-const http = require('http');
+const http = require('https');
 const fs = require('fs');
 var express = require('express');
 var app = express();
@@ -9,7 +9,7 @@ const DEFAULT_LATENCY=300
 const MAX_LATENCY=10000
 const MAX_PINGS=10
 const MAX_INTERVAL=15000
-const MAX_PING_WAIT=5000
+const MAX_PING_WAIT=6000
 var bodyParser = require('body-parser');
 app.use(express.json());
 
@@ -25,7 +25,7 @@ app.post('/create_session', (req, res) => {
     }
     else {
         sessions[sessionID]={"users":[],"url":url,"playing":playing,"serverTime":currentTime,"latency":DEFAULT_LATENCY,"last_latency_check":undefined}
-        users[uniqueID]={"sessionID":sessionID,"socketID":undefined,"currentTime":undefined,"latency":[]}
+        users[uniqueID]={"sessionID":sessionID,"socketID":undefined,"currentTime":undefined,"latency":[],"average_latency":DEFAULT_LATENCY}
         res.sendStatus(200);
     }
   });
@@ -49,7 +49,7 @@ const options = {
     key: fs.readFileSync('key.pem'),
     cert: fs.readFileSync('cert.pem')
   };
-const server=https.createServer(options,app).listen(443);
+const server=http.createServer(options,app).listen(443);
 
 const io = require('socket.io')(server, {
     path: '/socket.io',
@@ -62,29 +62,28 @@ const io = require('socket.io')(server, {
     let sid=socket.id;
     let autoPlay=socket.handshake.query.dontPlay;
 
-    
-    if (unique_id!=undefined && sid != undefined && unique_id in users) {
+
+    if (unique_id!=undefined && sid != undefined) {
         if (!(unique_id in users)) {
-            users[unique_id]={"socketID":undefined,"sessionID":undefined,"currentTime":undefined,"latency":[]}
+            users[unique_id]={"socketID":undefined,"sessionID":undefined,"currentTime":undefined,"latency":[],"average_latency":DEFAULT_LATENCY}
         }
         users[unique_id]['socketID']=sid
         sessionID=users[unique_id]['sessionID']
         sessions[sessionID]['users'].push(unique_id)
         socket.join(sessionID);
-        io.to(sessionID).emit("pause",{"time":(Date.now())+sessions[sessionID]['latency']});
+        io.to(sessionID).emit("pause",{"time":sessions[sessionID]['latency']-users[unique_id]['average_latency']});
         setTimeout(()=>{
             users[unique_id]['currentTime']=sessions[sessionID]['serverTime'];
-            socket.emit("seek",{"time":(Date.now())+DEFAULT_LATENCY,"new_time":sessions[sessionID]['serverTime']})
-            console.log(sessions[data['SESSID']]['serverTime']);
+            socket.emit("seek",{"time":sessions[sessionID]['latency']-users[unique_id]['average_latency'],"new_time":sessions[sessionID]['serverTime']})
             if (sessions[sessionID]['playing']) {
                 if (autoPlay) {
-                    socket.emit("play",{"time":(Date.now())+DEFAULT_LATENCY+400})
+                    socket.emit("play",{"time":sessions[sessionID]['latency']-users[unique_id]['average_latency']+400})
                 }
                 else {
-                    socket.emit("pause",{"time":(Date.now())+DEFAULT_LATENCY+400});
+                    socket.emit("pause",{"time":sessions[sessionID]['latency']-users[unique_id]['average_latency']+400});
                 }
             }
-        },DEFAULT_LATENCY*1000);
+        },DEFAULT_LATENCY);
         calculate_latency(sessionID);
     }
     function calculate_latency(sessionID) {
@@ -92,14 +91,15 @@ const io = require('socket.io')(server, {
         for (let i=0; i<MAX_PINGS; i++) {
             io.to(sessionID).emit("latency_check",{"time":(Date.now())});
         }  
-        let max_new_latency=sessions[sessionID]['latency'];
-        let user_list=sessions[sessionID]['users'];
         setTimeout(()=> {
+            let max_new_latency=MAX_LATENCY;
+            let user_list=sessions[sessionID]['users'];
             for (let i=0; i<user_list.length; i++) {
                 let pings=users[user_list[i]]['latency'];
                 const sum = pings.reduce((a, b) => a + b, 0);
                 const current_latency = (sum / pings.length) || 0;
-                sessions[sessionID]['latency']=Math.min(Math.max(current_latency,max_new_latency),MAX_LATENCY);
+                users[user_list[i]]['average_latency']=Math.min(current_latency,MAX_LATENCY);
+                sessions[sessionID]['latency']=Math.max(sessions[sessionID]['latency'],Math.min(users[user_list[i]]['average_latency'],MAX_LATENCY));
             }
         },MAX_PING_WAIT);
     }
@@ -116,11 +116,10 @@ const io = require('socket.io')(server, {
     }
     function pause(data,sid) {
         if (data['SESSID'] in sessions && data['unique_id'] in users) {
-            io.to(data['SESSID']).emit("pause",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
+            io.to(data['SESSID']).emit("pause",{"time":sessions[data['SESSID']]['latency']-users[data['unique_id']]['average_latency']});
             sessions[data['SESSID']]['playing']=false;
             if (data['currentTime']!=undefined) {
                 sessions[data['SESSID']]['serverTime']=data['new_time'];
-                console.log(sessions[data['SESSID']]['serverTime']);
             }
             check_interval(data['SESSID']);
         }
@@ -138,7 +137,7 @@ const io = require('socket.io')(server, {
     })
     socket.on('play', (data) => {
         if (data['SESSID'] in sessions && data['unique_id'] in users) {
-            io.to(data['SESSID']).emit("play",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
+            io.to(data['SESSID']).emit("play",{"time":sessions[data['SESSID']]['latency']-users[data['unique_id']]['average_latency']});
             sessions[data['SESSID']]['playing']=true;
             check_interval(data['SESSID']);
         }
@@ -149,7 +148,7 @@ const io = require('socket.io')(server, {
     });
     socket.on('seek', (data) => {
         if (data['SESSID'] in sessions && data['unique_id'] in users) {
-            socket.broadcast.to(data['SESSID']).emit("seek",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']});
+            socket.broadcast.to(data['SESSID']).emit("seek",{"time":sessions[data['SESSID']]['latency']-users[data['unique_id']]['average_latency'],"new_time":data['currentTime']});
             sessions[data['SESSID']]['playing']=false;
             if (data['currentTime']!=undefined) {
                 sessions[data['SESSID']]['serverTime']=data['currentTime'];
@@ -169,7 +168,7 @@ const io = require('socket.io')(server, {
         if (data['SESSID'] in sessions && data['unique_id'] in users) {
             sessions[data['SESSID']]['serverTime']=data['currentTime'];
             users[data['unique_id']]['currentTime']=data['currentTime'];
-            socket.broadcast.to(data['SESSID']).emit("forceChangeUrl",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_url":data['new_url']});
+            socket.broadcast.to(data['SESSID']).emit("forceChangeUrl",{"time":sessions[data['SESSID']]['latency']-users[data['unique_id']]['average_latency'],"new_url":data['new_url']});
             sessions[data['SESSID']]['url']=data['new_url']
             sessions[data['SESSID']]['serverTime']=0
             pause(sid,data)
@@ -178,7 +177,7 @@ const io = require('socket.io')(server, {
     });
     socket.on('seek', (data) => {
         if (data['SESSID'] in sessions && data['unique_id'] in users) {
-            socket.broadcast.to(data['SESSID']).emit("seek",{"time":(Date.now())+(sessions[data['SESSID']]['latency']),"new_time":data['currentTime']});
+            socket.broadcast.to(data['SESSID']).emit("seek",{"time":sessions[data['SESSID']]['latency']-users[data['unique_id']]['average_latency'],"new_time":data['currentTime']});
             sessions[data['SESSID']]['playing']=false;
             if (data['currentTime']!=undefined) {
                 sessions[data['SESSID']]['serverTime']=data['currentTime'];
@@ -188,7 +187,7 @@ const io = require('socket.io')(server, {
     })
     socket.on('pause', (data) => {
         if (data['SESSID'] in sessions && data['unique_id'] in users) {
-            io.to(data["SESSID"]).emit("pause",{"time":(Date.now())+sessions[data['SESSID']]['latency']});
+            io.to(data["SESSID"]).emit("pause",{"time":sessions[data['SESSID']]['latency']-users[data['unique_id']]['average_latency']});
             sessions[data['SESSID']]['playing']=false;
             if (data['currentTime']!=undefined) {
                 sessions[data['SESSID']]['serverTime']=data['currentTime'];
