@@ -37,7 +37,7 @@ class SocketObject {
         if (this.latency_count<0) {
           this.latency_count=5;
           this.latency = (this.latency_values.reduce((a, b) => a + b, 0))/this.latency_values.length;
-          this.latency_values.splice(0);
+          this.latency_values.shift();
           this.sock.emit("latency_update",{SESSID:this.sess_token,unique_id:this.unique_token,latency:this.latency});
         }
       });
