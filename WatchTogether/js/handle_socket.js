@@ -32,7 +32,6 @@ class SocketObject {
         this.seekable=false;
       }
       this.sock.on('pong', (ms) => {
-        console.log(ms);
         this.latency_count--;
         this.latency_values.push(ms);
         if (this.latency_count<0) {
