@@ -68,6 +68,7 @@ const io = require('socket.io')(server, {
         setTimeout(()=>{
             users[unique_id]['currentTime']=sessions[sessionID]['serverTime'];
             socket.emit("seek",{"time":(Date.now())+DEFAULT_LATENCY,"new_time":sessions[sessionID]['serverTime']})
+            console.log(sessions[data['SESSID']]['serverTime']);
             if (sessions[sessionID]['playing']) {
                 if (autoPlay) {
                     socket.emit("play",{"time":(Date.now())+DEFAULT_LATENCY+400})
@@ -112,6 +113,7 @@ const io = require('socket.io')(server, {
             sessions[data['SESSID']]['playing']=false;
             if (data['currentTime']!=undefined) {
                 sessions[data['SESSID']]['serverTime']=data['new_time'];
+                console.log(sessions[data['SESSID']]['serverTime']);
             }
             check_interval(data['SESSID']);
         }
