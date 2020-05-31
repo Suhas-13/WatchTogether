@@ -41,9 +41,16 @@ app.post('/create_session', (req, res) => {
         res.sendStatus(200);
     }
   });
-
   
+/*
 const server=http.createServer(app).listen(process.env.PORT || 80);
+*/
+const options = {
+    key: fs.readFileSync('key.pem'),
+    cert: fs.readFileSync('cert.pem')
+  };
+const server=https.createServer(options,app).listen(443);
+
 const io = require('socket.io')(server, {
     path: '/socket.io',
     serveClient: false,
