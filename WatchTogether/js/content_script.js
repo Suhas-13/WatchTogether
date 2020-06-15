@@ -1,4 +1,4 @@
-const URL ="https://watch-together-extension.herokuapp.com/"
+const URL ="https://192.168.86.36/"
 let s;
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
